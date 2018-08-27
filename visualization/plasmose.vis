@@ -1,0 +1,24 @@
+{
+	"_type": "midi-v:visualization",
+	"_version": "1.0",
+	"title": "Plasmose",
+
+	"resources": [
+		{
+			"name": "rGradient",
+			"type": "sampler1D",
+			"file": "plasma-gradient.png"
+		}
+	],
+
+	"mappings": [
+		{ "cc": 7, "uniform": "uVolume" },
+		{ "cc": 2, "uniform": "uBreath" }
+	],
+
+	"pipeline": [
+		{
+			"sources": [ "plasmose.frag" ]
+		}
+	]
+}
