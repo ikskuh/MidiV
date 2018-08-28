@@ -40,6 +40,26 @@ uniform sampler2D uBackground;
 
 uniform sampler1D rGradient;
 
+
+vec3 hsv2rgb(vec3 c)
+{
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+float plasma(vec2 uv, float iTime)
+{
+	uv *= 2.0;
+	uv -= 1.0;
+
+	return sin(uv.x + iTime)
+		+ 0.4 * sin(1.3 * uv.y + 0.3 * iTime)
+		+ sin(uv.y + iTime + 2)
+		+ 1.2 * sin(0.3 * uv.y + 0.7 * iTime)
+		;
+}
+
 void main()
 {
 	float aspect = float(uScreenSize.x) / float(uScreenSize.y);
@@ -56,7 +76,9 @@ void main()
 		;
 
 	float value = 0.5 + v / 4.2;
-	fragment = texture(rGradient, value)
+	fragment = vec4(0)
+		+ texture(rGradient, plasma(fUV, t))
 		+ pow(textureLod(uFFT, 0.7, 4.0).xxxx, vec4(0.25))
-		+ 4.0 * textureLod(uChannels, vec2(fUV.x, 15.0 * fUV.y), 4.0);
+		// + 4.0 * textureLod(uChannels, vec2(fUV.x, 15.0 * fUV.y), 4.0)
+	    ;
 }
