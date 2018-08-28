@@ -12,6 +12,8 @@
 #include <mutex>
 #include "mvisualization.hpp"
 
+#include <glm/glm.hpp>
+
 class MVisualizationContainer :
 	public QOpenGLWidget
 {
@@ -24,8 +26,11 @@ public:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
-private slots:
+private:
 	Q_SLOT void sequencerEvent( drumstick::SequencerEvent* ev );
+
+	void mousePressEvent(QMouseEvent * event) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
 
 private:
 	void loadVis(QString const & fileName);
@@ -35,7 +40,8 @@ private:
 	drumstick::MidiPort * port;
 
 	std::mutex mididataMutex;
-	MMidiState mididata, syncmidi;
+	// current state, synchronized state, summed state
+	MMidiState mididata, syncmidi, summidi;
 
 	std::vector<MVisualization> visualizations;
 	std::chrono::high_resolution_clock::time_point startPoint, lastFrame;
@@ -47,6 +53,14 @@ private:
 	float time, deltaTime;
 
 	GLuint backgroundTexture;
+
+	glm::vec2 mouse;
+
+	struct
+	{
+		GLuint texFFT, texChannels;
+		GLuint vao, fb;
+	} resources;
 };
 
 #endif // MVISUALIZATIONCONTAINER_HPP

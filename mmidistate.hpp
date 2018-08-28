@@ -2,12 +2,26 @@
 #define MMIDISTATE_HPP
 
 #include <cstdint>
+#include <cmath>
+#include <glm/glm.hpp>
+
+struct MMidiNote
+{
+	double value;
+	bool isOn;
+
+	void attack(double volume);
+
+	void release();
+
+	void tick(double dt);
+};
 
 struct MMidiChannel
 {
 	uint8_t instrument;
-	uint8_t ccs[128];
-	uint8_t notes[128];
+	double ccs[128];
+	MMidiNote notes[128];
 };
 
 struct MMidiState

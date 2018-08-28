@@ -5,11 +5,11 @@
 
 using hrc = std::chrono::high_resolution_clock;
 
-static GLuint vao, texFFT, fb;
-
 MVisualizationContainer::MVisualizationContainer(QWidget *parent) :
     QOpenGLWidget(parent),
-    mididata()
+    mididata(),
+    syncmidi(),
+    summidi()
 {
 	QSurfaceFormat fmt(QSurfaceFormat::DebugContext | QSurfaceFormat::DeprecatedFunctions);
 	fmt.setMajorVersion(4);
@@ -58,18 +58,30 @@ MVisualizationContainer::MVisualizationContainer(QWidget *parent) :
 		u.assertType(GL_INT_VEC2);
 		glProgramUniform2i(sh.program, u.position, this->width, this->height);
 	};
+	uniformMappings["uMousePos"] = [this](MShader const & sh, MUniform const & u, unsigned int &)
+	{
+		u.assertType(GL_INT_VEC2);
+		glProgramUniform2i(sh.program, u.position, this->mouse.x, this->mouse.y);
+	};
 	uniformMappings["uBackground"] = [this](MShader const & sh, MUniform const & u, unsigned int & slot)
 	{
 		u.assertType(GL_SAMPLER_2D);
-		glProgramUniform1ui(sh.program, u.position, slot);
+		glProgramUniform1i(sh.program, u.position, slot);
 		glBindTextureUnit(slot, this->backgroundTexture);
 		slot++;
 	};
-	uniformMappings["uFFT"] = [](MShader const & sh, MUniform const & u, unsigned int & slot)
+	uniformMappings["uFFT"] = [this](MShader const & sh, MUniform const & u, unsigned int & slot)
 	{
-		u.assertType(GL_SAMPLER_2D);
-		glProgramUniform1ui(sh.program, u.position, slot);
-		glBindTextureUnit(slot, texFFT);
+		u.assertType(GL_SAMPLER_1D);
+		glProgramUniform1i(sh.program, u.position, slot);
+		glBindTextureUnit(slot, resources.texFFT);
+		slot++;
+	};
+	uniformMappings["uChannels"] = [this](MShader const & sh, MUniform const & u, unsigned int & slot)
+	{
+		u.assertType(GL_SAMPLER_1D_ARRAY);
+		glProgramUniform1i(sh.program, u.position, slot);
+		glBindTextureUnit(slot, resources.texChannels);
 		slot++;
 	};
 
@@ -127,20 +139,34 @@ void MVisualizationContainer::initializeGL()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glCreateVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	glCreateVertexArrays(1, &resources.vao);
+	glBindVertexArray(resources.vao);
 
-	glCreateTextures(GL_TEXTURE_1D, 1, &texFFT);
-	glTextureStorage1D(
-		texFFT,
-		7,
-		GL_R32F,
-		128);
-	glTextureParameteri(texFFT, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTextureParameteri(texFFT, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTextureUnit(0, texFFT);
+	{
+		glCreateTextures(GL_TEXTURE_1D, 1, &resources.texFFT);
+		glTextureStorage1D(
+			resources.texFFT,
+			7,
+			GL_RG32F,
+			128);
+		glTextureParameteri(resources.texFFT, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTextureParameteri(resources.texFFT, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
 
-	glCreateFramebuffers(1, &fb);
+	{
+		glCreateTextures(GL_TEXTURE_1D_ARRAY, 1, &resources.texChannels);
+		glTextureStorage2D(
+			resources.texChannels,
+			7,
+			GL_RGBA32F,
+			128, 16);
+		glTextureParameteri(resources.texChannels, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		glTextureParameteri(resources.texChannels, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
+
+
+
+	glCreateFramebuffers(1, &resources.fb);
 
 	this->loadVis("visualization/plasmose.vis");
 
@@ -168,43 +194,80 @@ void MVisualizationContainer::paintGL()
 	// Clone to prevent changes
 	{
 		std::lock_guard<std::mutex> lock(this->mididataMutex);
+
+		for(int y = 0; y < 16; y++)
+		{
+			for(int x = 0; x < 128; x++)
+				this->mididata.channels[y].notes[x].tick(double(this->deltaTime));
+		}
+
 		this->syncmidi = this->mididata;
 	}
 
-	float fft[128];
-	for(int x = 0; x < 128; x++)
+	// Integrate midi data
+	for(int c = 0; c < 16; c++)
 	{
-		fft[x] = 0;
-		for(int y = 0; y < 16; y++)
+		for(int n = 0; n < 128; n++)
 		{
-			if(y != 9)
-				fft[x] += syncmidi.channels[y].notes[x];
+			this->summidi.channels[c].ccs[n] += this->deltaTime * this->syncmidi.channels[c].ccs[n];
+			this->summidi.channels[c].notes[n].value += this->deltaTime * this->syncmidi.channels[c].notes[n].value;
 		}
 	}
 
-	glTextureSubImage1D(
-		texFFT,
-		0,
-		0, 128,
-		GL_RED,
-		GL_FLOAT,
-		fft);
-	glGenerateTextureMipmap(texFFT);
+
+	{
+		glm::vec2 fft[128];
+		glm::vec4 channels[16][128];
+
+		for(int x = 0; x < 128; x++)
+		{
+			fft[x] = glm::vec2(0);
+			for(int y = 0; y < 16; y++)
+			{
+				if(y != 9)
+				{
+					fft[x].x += syncmidi.channels[y].notes[x].value;
+					fft[x].y += summidi.channels[y].notes[x].value;
+				}
+				channels[y][x].x = float(syncmidi.channels[y].notes[x].value);
+				channels[y][x].y = float(syncmidi.channels[y].ccs[x]);
+				channels[y][x].z = float(summidi.channels[y].notes[x].value);
+				channels[y][x].w = float(summidi.channels[y].ccs[x]);
+			}
+		}
+
+		glTextureSubImage1D(
+			resources.texFFT,
+			0,
+			0, 128,
+			GL_RG,
+			GL_FLOAT,
+			fft);
+		glGenerateTextureMipmap(resources.texFFT);
+
+		glTextureSubImage2D(
+			resources.texChannels,
+			0,
+			0, 0,
+			128, 16,
+			GL_RGBA,
+			GL_FLOAT,
+			channels);
+		glGenerateTextureMipmap(resources.texChannels);
+	}
 
 	auto const & vis = this->visualizations.front();
 	{
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resources.fb);
 		this->backgroundTexture = vis.resultingImage;
 		for(auto const & stage : vis.stages)
 		{
 			glNamedFramebufferTexture(
-				fb,
+				resources.fb,
 				GL_COLOR_ATTACHMENT0,
 				stage.renderTarget,
 				0);
-			glNamedFramebufferDrawBuffer(fb, GL_COLOR_ATTACHMENT0);
-			if(glCheckNamedFramebufferStatus(fb, GL_DRAW_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-				qDebug() << "incomplete framebuffer!";
+			glNamedFramebufferDrawBuffer(resources.fb, GL_COLOR_ATTACHMENT0);
 
 			glUseProgram(stage.shader.program);
 			{
@@ -218,7 +281,7 @@ void MVisualizationContainer::paintGL()
 					if(resource != vis.resources.end())
 					{
 						glBindTextureUnit(textureSlot, resource->second.texture);
-						glProgramUniform1ui(stage.shader.program, uniform.position, textureSlot);
+						glProgramUniform1i(stage.shader.program, uniform.position, textureSlot);
 						textureSlot++;
 					}
 					else
@@ -241,7 +304,7 @@ void MVisualizationContainer::paintGL()
 		}
 
 		glBlitNamedFramebuffer(
-			fb, // src
+			resources.fb, // src
 			this->defaultFramebufferObject(), // dst
 			0, 0, this->width, this->height, // src-rect
 			0, 0, this->width, this->height, // dest-rect
@@ -274,12 +337,15 @@ void MVisualizationContainer::sequencerEvent( drumstick::SequencerEvent* ev )
 	{
 		case SND_SEQ_EVENT_NOTEON: {
 			auto * e = static_cast<NoteOnEvent*>(ev);
-			this->mididata.channels[e->getChannel()].notes[e->getKey()] = uint8_t(e->getVelocity());
+			if(e->getVelocity() > 0)
+				this->mididata.channels[e->getChannel()].notes[e->getKey()].attack(e->getVelocity() / 127.0);
+			else
+				this->mididata.channels[e->getChannel()].notes[e->getKey()].release();
 			break;
 		}
 		case SND_SEQ_EVENT_NOTEOFF: {
 			auto * e = static_cast<NoteOffEvent*>(ev);
-			this->mididata.channels[e->getChannel()].notes[e->getKey()] = 0;
+			this->mididata.channels[e->getChannel()].notes[e->getKey()].release();
 			break;
 		}
 		case SND_SEQ_EVENT_PGMCHANGE: {
@@ -292,6 +358,34 @@ void MVisualizationContainer::sequencerEvent( drumstick::SequencerEvent* ev )
 			this->mididata.channels[e->getChannel()].instrument = uint8_t(e->getValue());
 			break;
 		}
+		case SND_SEQ_EVENT_CONTROL14:
+	    case SND_SEQ_EVENT_NONREGPARAM:
+	    case SND_SEQ_EVENT_REGPARAM:
+	    case SND_SEQ_EVENT_CONTROLLER:
+		{
+	        auto * e = static_cast<ControllerEvent*>(ev);
+			this->mididata.channels[e->getChannel()].ccs[e->getParam()] = e->getValue() / 127.0;
+	        break;
+	    }
 	}
 	delete ev;
+}
+
+void MVisualizationContainer::mousePressEvent(QMouseEvent * event)
+{
+	this->mouseMoveEvent(event);
+}
+
+void MVisualizationContainer::mouseMoveEvent(QMouseEvent * event)
+{
+	this->mouse = glm::ivec2(event->x(), this->height - event->y() - 1);
+	qDebug()
+		<< "Mouse Pos: ("
+		<< this->mouse.x
+	    << this->mouse.y
+	    << "), ("
+	    << this->mouse.x / double(this->width - 1)
+	    << this->mouse.y / double(this->height - 1)
+	    << ")"
+		;
 }
