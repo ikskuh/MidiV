@@ -18,6 +18,7 @@ struct MRenderStage
 
 struct MVisualization
 {
+	MVisualization() = default;
 	explicit MVisualization(nlohmann::json const & data);
 
 	void resize(int w, int h);

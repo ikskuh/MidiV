@@ -6,6 +6,10 @@
 
 #include "die.h"
 #include "debug.hpp"
+#include "hal.hpp"
+#include "utils.hpp"
+
+#include <json.hpp>
 
 [[noreturn]] void _die(char const * context, char const * msg)
 {
@@ -19,7 +23,29 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
+	std::string configFile;
+	if(argc > 1)
+	{
+		configFile = argv[1];
+	}
+	else
+	{
+#ifdef MIDIV_DEBUG
+		configFile = HAL::GetWorkingDirectory() + "/midiv.cfg";
+#else
+		configFile = HAL::GetDirectoryOf(argv[0]) + "/midiv.cfg";
+#endif
+	}
 
+	// load config
+	auto const data = Utils::LoadFile(configFile);
+	if(!data)
+	{
+		Log() << "Config file " << configFile << " not found!";
+		return EXIT_FAILURE;
+	}
+
+	auto const config = nlohmann::json::parse(data->begin(), data->end());
 
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
         die(SDL_GetError());
@@ -32,8 +58,9 @@ int main(int argc, char *argv[])
     auto * const window = SDL_CreateWindow(
         "Midi-V",
         SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,
-        1280, 720,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+        Utils::get(config, "width", 1280),
+		Utils::get(config, "height", 720),
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | (Utils::get(config, "fullscreen", false) ? SDL_WINDOW_FULLSCREEN : 0));
     if(window == nullptr)
         die(SDL_GetError());
 
@@ -97,10 +124,18 @@ int main(int argc, char *argv[])
 
 
     Log() << "Initializing...";
-
     MidiV::Initialize();
-
     Log() << "Initialized!";
+
+	Log() << "Loading visualizations...";
+
+	int index = 0;
+	for(auto const & vis : config["visualizations"])
+	{
+		MidiV::LoadVisualization(index++, vis.get<std::string>());
+	}
+
+	Log() << "Visualizations ready!";
 
     int w, h;
     SDL_GetWindowSize(window, &w, &h);

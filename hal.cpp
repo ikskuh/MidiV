@@ -1,5 +1,12 @@
 #include "hal.hpp"
 
+std::string HAL::GetDirectoryOf(std::string const & file)
+{
+	ptrdiff_t offset;
+    auto fullPath = HAL::GetFullPath(file, &offset);
+    return fullPath.substr(0, size_t(offset));
+}
+
 #ifdef MIDIV_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

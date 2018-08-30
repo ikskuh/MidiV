@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <utility>
 #include <string>
+#include <json.hpp>
 
 namespace Utils
 {
@@ -115,4 +116,14 @@ namespace Utils
             return Optional<std::vector<T>>();
         }
     }
+
+
+	template<typename T>
+	static T get(nlohmann::json const & data, char const * name, T const & _default)
+	{
+		if(data.find(name) != data.end())
+			return data[name].get<T>();
+		else
+			return _default;
+	}
 }

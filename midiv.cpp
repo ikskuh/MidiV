@@ -4,6 +4,7 @@
 #include "debug.hpp"
 #include <glm/glm.hpp>
 #include <fstream>
+#include <array>
 
 #include <RtMidi.h>
 
@@ -13,7 +14,7 @@ static std::mutex mididataMutex;
 // current state, synchronized state, summed state
 static MMidiState mididata, syncmidi, summidi;
 
-static std::vector<MVisualization> visualizations;
+static std::array<MVisualization, 128> visualizations;
 static std::chrono::high_resolution_clock::time_point startPoint, lastFrame;
 
 static std::map<std::string, std::function<void(MShader const &, MUniform const &, unsigned int &)>> uniformMappings;
@@ -33,8 +34,6 @@ static struct
 } resources;
 
 static std::unique_ptr<RtMidiIn> midi;
-
-static void loadVis(std::string const & fileName);
 
 static void nop() { }
 
@@ -96,8 +95,6 @@ void MidiV::Initialize()
 
     glCreateFramebuffers(1, &resources.fb);
 
-    loadVis("visualization/plasmose.vis");
-
     startPoint = hrc::now();
     lastFrame = startPoint;
 
@@ -144,22 +141,21 @@ void MidiV::Initialize()
 	};
 }
 
-static void loadVis(std::string const & fileName)
+
+void MidiV::LoadVisualization(int slot, std::string const & fileName)
 {
     auto current = HAL::GetWorkingDirectory();
     auto file = Utils::LoadFile<char>(fileName);
 
     if(file)
     {
-        ptrdiff_t offset;
-        auto fullPath = HAL::GetFullPath(fileName, &offset);
-        fullPath = fullPath.substr(0, offset);
+		auto dir = HAL::GetDirectoryOf(fileName);
 
-		HAL::SetWorkingDirectory(fullPath);
+		HAL::SetWorkingDirectory(dir);
 
         auto data = nlohmann::json::parse(file->begin(), file->end());
 
-        visualizations.emplace_back(data);
+        visualizations[slot] = MVisualization(data);
 	}
 	else
 	{

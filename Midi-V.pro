@@ -25,6 +25,10 @@ CONFIG += c++17
 
 *-g++: QMAKE_CXXFLAGS += -std=c++17
 
+debug: {
+	DEFINES += MIDIV_DEBUG
+}
+
 linux: {
     DEFINES += MIDIV_LINUX __LINUX_ALSA__
     PACKAGES = sdl2 alsa
@@ -74,4 +78,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     visualization/plasmose.vis \
-    visualization/plasmose.frag
+    visualization/plasmose.frag \
+    midiv.cfg

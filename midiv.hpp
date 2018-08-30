@@ -17,6 +17,8 @@ namespace MidiV
 {
     void Initialize();
 
+	void LoadVisualization(int slot, std::string const & fileName);
+
     void Resize(int w, int h);
 
     void Render();

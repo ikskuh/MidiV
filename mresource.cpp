@@ -1,6 +1,7 @@
 #include "mresource.hpp"
 #include <stb_image.h>
 #include "debug.hpp"
+#include "utils.hpp"
 #include <memory>
 
 MResource::MResource() : name(), texture(0)
@@ -8,17 +9,10 @@ MResource::MResource() : name(), texture(0)
 
 }
 
-template<typename T>
-static T get(nlohmann::json const & data, char const * name, T const & _default)
-{
-	if(data.find(name) != data.end())
-		return data[name].get<T>();
-	else
-		return _default;
-}
-
 MResource::MResource(nlohmann::json const & data)
 {
+	using Utils::get;
+
     this->name = data["name"].get<std::string>();
 	auto type = data["type"].get<std::string>();
 
