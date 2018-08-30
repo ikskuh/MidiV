@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <fstream>
 
+#include <RtMidi.h>
+
 using hrc = std::chrono::high_resolution_clock;
 
 static std::mutex mididataMutex;
@@ -26,14 +28,15 @@ static glm::ivec2 mouse;
 
 static struct
 {
-    GLuint texFFT, texChannels;
+	GLuint texFFT, texChannels;
     GLuint vao, fb;
 } resources;
+
+static std::unique_ptr<RtMidiIn> midi;
 
 static void loadVis(std::string const & fileName);
 
 static void nop() { }
-
 
 void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam)
 {
@@ -51,12 +54,14 @@ void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei
         nop(); // point to break on
 }
 
+static void midiCallback( double timeStamp, std::vector<unsigned char> *message, void *userData);
+
 void MidiV::Initialize()
 {
-#ifdef MIDIV_LINUX
-
-#endif
-
+	midi = std::make_unique<RtMidiIn>(RtMidi::UNSPECIFIED, "Midi-V");
+	midi->setCallback(midiCallback, nullptr);
+	midi->openVirtualPort("Visualization Input");
+	midi->ignoreTypes(); // no time, no sense, no sysex
 
     glDebugMessageCallback(msglog, nullptr);
 
@@ -167,6 +172,7 @@ static void loadVis(std::string const & fileName)
 void MidiV::Resize(int w, int h)
 {
     Log() << "Resize to " << w << "×" << h;
+	glViewport(0, 0, w, h);
     for(auto & vis : visualizations)
 	{
 		vis.resize(w, h);
@@ -316,8 +322,75 @@ void MidiV::Render()
     lastFrame = now;
 }
 
+/*
+1000nnnn	0kkkkkkk	0vvvvvvv	Note Off event.
+									This message is sent when a note is released (ended).
+									(kkkkkkk) is the key (note) number.
+									(vvvvvvv) is the velocity.
+1001nnnn	0kkkkkkk	0vvvvvvv	Note On event.
+									This message is sent when a note is depressed (start).
+									(kkkkkkk) is the key (note) number.
+									(vvvvvvv) is the velocity.
+1010nnnn	0kkkkkkk	0vvvvvvv	Polyphonic Key Pressure (Aftertouch).
+									This message is most often sent by pressing down on the key after it "bottoms out".
+									(kkkkkkk) is the key (note) number.
+									(vvvvvvv) is the pressure value.
+1011nnnn	0ccccccc	0vvvvvvv	Control Change.
+									This message is sent when a controller value changes. Controllers include devices such as pedals and levers. Certain controller numbers are reserved for specific purposes. See Channel Mode Messages.
+									(ccccccc) is the controller number.
+									(vvvvvvv) is the new value.
+1100nnnn	0ppppppp				Program Change.
+									This message sent when the patch number changes.
+									(ppppppp) is the new program number.
+1101nnnn	0vvvvvvv				Channel Pressure (After-touch).
+									This message is most often sent by pressing down on the key after it "bottoms out". This message is different from polyphonic after-touch. Use this message to send the single greatest pressure value (of all the current depressed keys).
+									(vvvvvvv) is the pressure value.
+1110nnnn	0lllllll	0mmmmmmm	Pitch Wheel Change.
+									This message is sent to indicate a change in the pitch wheel. The pitch wheel is measured by a fourteen bit value. Centre (no pitch change) is 2000H. Sensitivity is a function of the transmitter.
+									(lllllll) are the least significant 7 bits.
+									(mmmmmmm) are the most significant 7 bits.
+*/
 
-#ifdef MIDIV_LINUX
+struct MidiMsg
+{
+	static constexpr uint8_t NoteOff          = 0x80;
+	static constexpr uint8_t NoteOn           = 0x90;
+	static constexpr uint8_t Aftertouch       = 0xA0;
+	static constexpr uint8_t ControlChange    = 0xB0;
+	static constexpr uint8_t ProgramChange    = 0xC0;
+	static constexpr uint8_t ChannelPressure  = 0xD0;
+	static constexpr uint8_t PitchWheelChange = 0xE0;
+	static constexpr uint8_t MASK             = 0xF0;
+};
+
+void midiCallback( double timeStamp, std::vector<unsigned char> * message, void * /*userData*/)
+{
+	std::lock_guard<std::mutex> lock(mididataMutex);
+
+	auto chan = message->at(0) & 0x0F;
+	switch(message->at(0) & MidiMsg::MASK)
+	{
+		case MidiMsg::NoteOff:
+		case MidiMsg::NoteOn:
+			if(message->at(2) > 0)
+				mididata.channels[chan].notes[message->at(1) & 0x7F].attack(message->at(2) / 127.0);
+			else
+				mididata.channels[chan].notes[message->at(1) & 0x7F].release();
+			break;
+		default: {
+			std::stringstream stream;
+			for(unsigned int i = 0; i < message->size(); i++)
+			{
+				if(i > 0)
+					stream << " ";
+				stream << std::hex << int(message->at(i)) << std::dec;
+			}
+			Log() << "Unknown MIDI event @" << timeStamp << " of length " << message->size() << ": " << stream.str();
+		}
+	}
+
+}
+
 /*
 void MVisualizationContainer::sequencerEvent( drumstick::SequencerEvent* ev )
 {
@@ -363,7 +436,6 @@ void MVisualizationContainer::sequencerEvent( drumstick::SequencerEvent* ev )
 	delete ev;
 }
 */
-#endif
 
 /*
 void MVisualizationContainer::mousePressEvent(QMouseEvent * event)

@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
+
+
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
         die(SDL_GetError());
     atexit(SDL_Quit);
