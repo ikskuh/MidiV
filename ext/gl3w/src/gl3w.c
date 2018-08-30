@@ -145,6 +145,26 @@ static int parse_version(void)
 
 static void load_procs(GL3WGetProcAddressProc proc);
 
+static void print_missing_proc(char const * procName)
+{
+	fprintf(stderr, "Call to non-existent function %s!\n", procName);
+	fflush(stderr);
+}
+
+static void noop_proc()
+{
+	fprintf(stderr, "Call to non-existent GL function!\n");
+	fflush(stderr);
+}
+
+static GL3WglProc get_or_thunk_proc(char const * procName)
+{
+	auto * proc = gl3wGetProcAddress(procName);
+	if(proc != NULL)
+		return proc;
+	return noop_proc;
+}
+
 int gl3wInit(void)
 {
 	int res = open_libgl();
@@ -152,7 +172,7 @@ int gl3wInit(void)
 		return res;
 
 	atexit(close_libgl);
-    return gl3wInit2(gl3wGetProcAddress);
+    return gl3wInit2(get_or_thunk_proc);
 }
 
 int gl3wInit2(GL3WGetProcAddressProc proc)
@@ -175,20 +195,6 @@ GL3WglProc gl3wGetProcAddress(const char *procName)
     GL3WglProc proc = get_proc(procName);
     if(proc != NULL)
         return proc;
-
-    // allocate some buffer for addresses
-    char * buffer = malloc(strlen(procName) + 16);
-#define GET(x)  if(proc == NULL) proc = get_proc(strcat(strcpy(buffer, procName), #x))
-    GET(ARB);
-    GET(EXT);
-    GET(KHR);
-#undef GET
-    if(proc != NULL)
-    {
-        fprintf(stderr, "gl3wGetProcAddress loaded fallback %s instead of %s.\n", buffer, procName);
-        fflush(stderr);
-    }
-    free(buffer);
     return proc;
 }
 
