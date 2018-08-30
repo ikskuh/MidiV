@@ -97,15 +97,17 @@ namespace Utils
     Optional<std::vector<T>> LoadFile(std::string const & fileName)
     {
         static_assert(sizeof(T) == 1, "T must be either unsigned or signed byte!");
-        std::ifstream file(fileName, std::ios::binary | std::ios::in);
+        std::ifstream file;
+		file.open(fileName, std::ios::binary | std::ios::in);
         if(file.good())
         {
-            file.seekg(file.end);
-            auto const  len = file.tellg();
-            file.seekg(file.beg);
+            file.seekg(0, file.end);
+            size_t const len = file.tellg();
+            file.seekg(0, file.beg);
 
             std::vector<T> raw(len);
             file.read(reinterpret_cast<char*>(raw.data()), raw.size());
+			file.close();
             return raw;
         }
         else

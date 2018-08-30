@@ -7,12 +7,6 @@
 
 using hrc = std::chrono::high_resolution_clock;
 
-
-#ifdef MIDIV_LINUX
-static drumstick::MidiClient * client;
-static drumstick::MidiPort * port;
-#endif
-
 static std::mutex mididataMutex;
 // current state, synchronized state, summed state
 static MMidiState mididata, syncmidi, summidi;
@@ -60,25 +54,7 @@ void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei
 void MidiV::Initialize()
 {
 #ifdef MIDIV_LINUX
-	client = new drumstick::MidiClient(this);
-    client->open();
-    client->setClientName("Midi-V");
-    connect(
-		client, &drumstick::MidiClient::eventReceived,
-		this,   &MVisualizationContainer::sequencerEvent,
-		Qt::DirectConnection );
-    port = new drumstick::MidiPort(this);
-    port->attach( client );
-    port->setPortName("Midi-V Port");
-    port->setCapability( SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE );
-    port->setPortType( SND_SEQ_PORT_TYPE_APPLICATION | SND_SEQ_PORT_TYPE_MIDI_GENERIC );
-	port->subscribeFromAnnounce();
 
-	drumstick::PortInfo info(client, 14, 0);
-	port->subscribeFrom(&info);
-
-	client->setRealTimeInput(false);
-    client->startSequencerInput();
 #endif
 
 
@@ -166,23 +142,15 @@ void MidiV::Initialize()
 static void loadVis(std::string const & fileName)
 {
     auto current = HAL::GetWorkingDirectory();
-
-    Log() << "do i get here?";
-
     auto file = Utils::LoadFile<char>(fileName);
 
     if(file)
     {
         ptrdiff_t offset;
         auto fullPath = HAL::GetFullPath(fileName, &offset);
-
-        Log() << "A" << fullPath << offset;
         fullPath = fullPath.substr(0, offset);
-        Log() << "B" << fullPath;
 
-        // QDir path(fileName);
-        // path.cdUp();
-        // QDir::setCurrent(path.path());
+		HAL::SetWorkingDirectory(fullPath);
 
         auto data = nlohmann::json::parse(file->begin(), file->end());
 
@@ -198,7 +166,7 @@ static void loadVis(std::string const & fileName)
 
 void MidiV::Resize(int w, int h)
 {
-    Log() << "Resize to" << w << "×" << h;
+    Log() << "Resize to " << w << "×" << h;
     for(auto & vis : visualizations)
 	{
 		vis.resize(w, h);
@@ -350,6 +318,7 @@ void MidiV::Render()
 
 
 #ifdef MIDIV_LINUX
+/*
 void MVisualizationContainer::sequencerEvent( drumstick::SequencerEvent* ev )
 {
 	using namespace drumstick;
@@ -393,6 +362,7 @@ void MVisualizationContainer::sequencerEvent( drumstick::SequencerEvent* ev )
 	}
 	delete ev;
 }
+*/
 #endif
 
 /*

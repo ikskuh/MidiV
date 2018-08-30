@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         {
             auto * str = glGetStringi(GL_EXTENSIONS, i);
             for(auto & ext : requiredExtensions)
-                ext.second |=  (0 == _strcmpi(reinterpret_cast<char const *>(str), ext.first));
+                ext.second |=  (0 == strcmp(reinterpret_cast<char const *>(str), ext.first));
         }
 
         for(auto const & ext  : requiredExtensions)

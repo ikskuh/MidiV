@@ -6,8 +6,7 @@
 #include <chrono>
 
 #ifdef MIDIV_LINUX
-#include <drumstick.h>
-#undef marker
+
 #endif
 
 #include <mutex>

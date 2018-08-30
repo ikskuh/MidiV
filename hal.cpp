@@ -38,3 +38,33 @@ std::string HAL::GetFullPath(std::string const & relpath, ptrdiff_t * nameOffset
 }
 
 #endif
+
+#ifdef MIDIV_LINUX
+
+#include <unistd.h>
+#include <limits.h>
+#include <string.h>
+
+std::string HAL::GetWorkingDirectory()
+{
+	char buf[PATH_MAX + 1];
+	return std::string(getcwd(buf, sizeof buf));
+}
+
+bool HAL::SetWorkingDirectory(std::string const & dir)
+{
+    return (0 == chdir(dir.c_str()));
+}
+
+std::string HAL::GetFullPath(std::string const & relpath, ptrdiff_t * nameOffset)
+{
+	char buf[PATH_MAX + 1];
+	if(realpath(relpath.c_str(), buf) == nullptr)
+		return std::string();
+	char * pos = strrchr(buf, '/');
+	if(pos != nullptr && nameOffset != nullptr)
+		*nameOffset = pos - buf;
+	return std::string(buf);
+}
+
+#endif

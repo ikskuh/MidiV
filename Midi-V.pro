@@ -28,9 +28,10 @@ CONFIG += c++17
 *-g++: QMAKE_CXXFLAGS += -std=c++17
 
 linux: {
-    PACKAGES = drumstick-alsa sdl2
+    PACKAGES = sdl2
     QMAKE_CXXFLAGS += $$system(pkg-config --cflags $$PACKAGES)
     QMAKE_LFLAGS   += $$system(pkg-config --libs   $$PACKAGES)
+	LIBS += -ldl
     DEFINES += MIDIV_LINUX
 }
 win32: {
