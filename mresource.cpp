@@ -1,7 +1,7 @@
 #include "mresource.hpp"
-#include "stb_image.h"
+#include <stb_image.h>
+#include "debug.hpp"
 #include <memory>
-#include <QDebug>
 
 MResource::MResource() : name(), texture(0)
 {
@@ -19,7 +19,7 @@ static T get(nlohmann::json const & data, char const * name, T const & _default)
 
 MResource::MResource(nlohmann::json const & data)
 {
-	this->name = QString::fromStdString(data["name"].get<std::string>());
+    this->name = data["name"].get<std::string>();
 	auto type = data["type"].get<std::string>();
 
 	int width = 0;
@@ -41,7 +41,7 @@ MResource::MResource(nlohmann::json const & data)
 
 		imgdata = stbi_load(fileName.c_str(), &width, &height, nullptr, 4);
 		if(imgdata == nullptr)
-			qDebug() << "Could not load " << fileName.c_str();
+            Log() << "Could not load " << fileName.c_str();
 	}
 
 	// read mipmap property
@@ -199,7 +199,7 @@ MResource::MResource(nlohmann::json const & data)
 	else if(wrap == "border")
 		texwrap = GL_CLAMP_TO_BORDER;
 	else
-		qDebug() << "Unknown texture wrap" << wrap.c_str();
+        Log() << "Unknown texture wrap" << wrap.c_str();
 
 	glTextureParameteri(this->texture, GL_TEXTURE_MAG_FILTER, (filter == "linear") ? GL_LINEAR : GL_NEAREST);
 	glTextureParameteri(this->texture, GL_TEXTURE_MIN_FILTER, (layers > 1) ? mipfilter : nonmipfilter);

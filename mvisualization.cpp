@@ -2,12 +2,12 @@
 
 MVisualization::MVisualization(nlohmann::json const & data)
 {
-	this->title = QString::fromStdString(data["title"].get<std::string>());
+    this->title = data["title"].get<std::string>();
 
 	// load all resource
 	for(auto const & subdata : data["resources"])
 	{
-		auto name = QString::fromStdString(subdata["name"].get<std::string>());
+        auto name = subdata["name"].get<std::string>();
 		this->resources.emplace(name, MResource(subdata));
 	}
 
@@ -15,14 +15,15 @@ MVisualization::MVisualization(nlohmann::json const & data)
 	for(auto const & subdata : data["mappings"])
 	{
 		auto from = uint8_t(subdata["cc"].get<int>());
-		auto to   = QString::fromStdString(subdata["uniform"].get<std::string>());
+        auto to   = subdata["uniform"].get<std::string>();
 		this->ccMapping.emplace(from, to);
 	}
 
 	// load all shaders
 	for(auto const & subdata : data["pipeline"])
 	{
-		auto & stage = this->stages.emplace_back();
+        this->stages.emplace_back();
+        auto & stage = this->stages.back();
 		stage.shader = MShader(subdata);
 		stage.renderTarget = 0;
 	}

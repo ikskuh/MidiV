@@ -1,13 +1,12 @@
 #ifndef MVISUALIZATION_HPP
 #define MVISUALIZATION_HPP
 
-#include <QObject>
-#include <QList>
 
 #include "mmidistate.hpp"
 #include "mshader.hpp"
 #include "mresource.hpp"
 
+#include <string>
 #include <vector>
 #include <map>
 
@@ -23,9 +22,9 @@ struct MVisualization
 
 	void resize(int w, int h);
 
-	QString title;
-	std::map<QString,MResource> resources;
-	std::map<uint8_t,QString> ccMapping;
+    std::string title;
+    std::map<std::string,MResource> resources;
+    std::map<uint8_t,std::string> ccMapping;
 	std::vector<MRenderStage> stages;
 
 	GLuint resultingImage;

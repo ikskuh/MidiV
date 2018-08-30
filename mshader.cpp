@@ -1,7 +1,6 @@
 #include "mshader.hpp"
-
-#include <QFile>
-#include <QDebug>
+#include "utils.hpp"
+#include "debug.hpp"
 
 static GLuint getVertexShader()
 {
@@ -39,24 +38,27 @@ MShader::MShader() : program(0), uniforms()
 
 MShader::MShader(nlohmann::json const & data)
 {
-	std::vector<QByteArray> strings;
+    std::vector<std::vector<char>> strings;
 	for(auto const & src : data["sources"])
 	{
-		QFile file(QString::fromStdString(src.get<std::string>()));
-		if(!file.exists())
-			qDebug() << "Could not find " << file.fileName();
-		file.open(QFile::ReadOnly | QFile::Text);
-		auto raw = file.readAll();
-		raw.append(char(0));
-		strings.emplace_back(raw);
-		file.close();
+        auto name = src.get<std::string>();
+        auto data = Utils::LoadFile<char>(name);
+        if(!data)
+        {
+            Log() << "Could not find " << name;
+        }
+        else
+        {
+            data->push_back(Utils::Byte(0));
+            strings.emplace_back(std::move(*data));
+        }
 	}
 
 	std::vector<GLchar const *> sources;
 	std::transform(
 		strings.begin(), strings.end(),
 		std::back_inserter(sources),
-		[](QByteArray const & data) { return data.data(); });
+        [](std::vector<char> const & data) { return data.data(); });
 
 	GLuint sh = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -81,7 +83,7 @@ MShader::MShader(nlohmann::json const & data)
 		glGetActiveUniform(this->program, i, sizeof buffer, &length, &size, &type, buffer);
 
 		MUniform uniform;
-		uniform.name = QString(QByteArray(buffer, length));
+        uniform.name = std::string(buffer, length);
 		uniform.position = int(i);
 		uniform.type = type;
 

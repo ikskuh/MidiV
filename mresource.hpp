@@ -2,9 +2,9 @@
 #define MRESOURCE_HPP
 
 #include <GL/gl3w.h>
-#include <QObject>
 #include <functional>
-#include "json.hpp"
+#include <string>
+#include <json.hpp>
 #include "mmidistate.hpp"
 
 //! A resource containing a texture of a certain type.
@@ -18,7 +18,7 @@
 //! ```
 struct MResource
 {
-	QString name;
+    std::string name;
 	GLuint texture;
 
 	// creates a null resource

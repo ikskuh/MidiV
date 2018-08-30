@@ -4,37 +4,45 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets opengl
-
 TARGET = Midi-V
 TEMPLATE = app
-PACKAGES = drumstick-alsa
+CONFIG -= qt
+CONFIG += console
 
-include(/home/felix/projects/gl3w/gl3w.pri)
+INCLUDEPATH += $$quote($$PWD/ext/gl3w/include)
+INCLUDEPATH += $$quote($$PWD/ext/glm)
+INCLUDEPATH += $$quote($$PWD/ext/stb)
+INCLUDEPATH += $$quote($$PWD/ext/json)
 
-# The following define makes your compiler emit warnings if you use
-# any feature of Qt which has been marked as deprecated (the exact warnings
-# depend on your compiler). Please consult the documentation of the
-# deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS
+DEPENDPATH += $$quote($$PWD/ext/gl3w/include)
+DEPENDPATH += $$quote($$PWD/ext/glm)
+DEPENDPATH += $$quote($$PWD/ext/stb)
+DEPENDPATH += $$quote($$PWD/ext/json)
 
-# You can also make your code fail to compile if you use deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+SOURCES += $$quote($$PWD/ext/gl3w/src/gl3w.c) \
+    midiv.cpp \
+    hal.cpp
 
 CONFIG += c++17
 
-QMAKE_CXXFLAGS += -std=c++17
+*-g++: QMAKE_CXXFLAGS += -std=c++17
 
 linux: {
-	QMAKE_CXXFLAGS += $$system(pkg-config --cflags $$PACKAGES)
-	QMAKE_LFLAGS   += $$system(pkg-config --libs   $$PACKAGES)
+    PACKAGES = drumstick-alsa sdl2
+    QMAKE_CXXFLAGS += $$system(pkg-config --cflags $$PACKAGES)
+    QMAKE_LFLAGS   += $$system(pkg-config --libs   $$PACKAGES)
+    DEFINES += MIDIV_LINUX
+}
+win32: {
+    DEFINES += MIDIV_WINDOWS
+    LIBS += -lopengl32
+    INCLUDEPATH += $$quote(C:\lib\SDL2-2.0.8\include)
+    DEPENDPATH += $$quote(C:\lib\SDL2-2.0.8\include)
+    LIBS += -L$$quote(C:\lib\SDL2-2.0.8\lib\x64) -lSDL2 -lSDL2main
 }
 
 SOURCES += \
         main.cpp \
-    mvisualizationcontainer.cpp \
     mshader.cpp \
     mvisualization.cpp \
     mmidistate.cpp \
@@ -42,11 +50,15 @@ SOURCES += \
     stbi_impl.c
 
 HEADERS += \
-    mvisualizationcontainer.hpp \
     mshader.hpp \
     mvisualization.hpp \
     mmidistate.hpp \
-    mresource.hpp
+    mresource.hpp \
+    die.h \
+    midiv.hpp \
+    hal.hpp \
+    debug.hpp \
+    utils.hpp
 
 FORMS +=
 

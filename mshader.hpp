@@ -4,11 +4,10 @@
 #include "json.hpp"
 
 #include <GL/gl3w.h>
-#include <QString>
 
 struct MUniform
 {
-	QString name;
+    std::string name;
 	int position;
 	GLenum type;
 
@@ -22,7 +21,7 @@ struct MUniform
 struct MShader
 {
 	GLuint program;
-	std::map<QString, MUniform> uniforms;
+    std::map<std::string, MUniform> uniforms;
 
 	MShader();
 	explicit MShader(nlohmann::json const & data);

@@ -1,13 +1,129 @@
-#include "mvisualizationcontainer.hpp"
+#include "midiv.hpp"
 
-#include <QApplication>
+#include <GL/gl3w.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+
+#include "die.h"
+#include "debug.hpp"
+
+[[noreturn]] void _die(char const * context, char const * msg)
+{
+    fprintf(stderr, "%s: %s\n", context, msg);
+    fflush(stderr);
+    exit(EXIT_FAILURE);
+}
 
 int main(int argc, char *argv[])
 {
-	QApplication a(argc, argv);
+    (void)argc;
+    (void)argv;
 
-	MVisualizationContainer container;
-	container.show();
+    if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
+        die(SDL_GetError());
+    atexit(SDL_Quit);
 
-	return a.exec();
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+
+    auto * const window = SDL_CreateWindow(
+        "Midi-V",
+        SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,
+        1280, 720,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    if(window == nullptr)
+        die(SDL_GetError());
+
+    auto const context = SDL_GL_CreateContext(window);
+    if(context == nullptr)
+        die(SDL_GetError());
+
+    if(SDL_GL_MakeCurrent(window, context) < 0)
+        die(SDL_GetError());
+
+    switch(gl3wInit())
+    {
+        case GL3W_OK:
+            Log() << glGetString(GL_VERSION) << " ready.";
+            break;
+
+        case GL3W_ERROR_LIBRARY_OPEN:
+            Log() << "Failed to initialize gl3w: Could not open OpenGL library!";
+            return EXIT_FAILURE;
+
+        case GL3W_ERROR_INIT:
+            Log() << "Failed to initialize gl3w: Could not initialize OpenGL!";
+            return EXIT_FAILURE;
+
+        case GL3W_ERROR_OPENGL_VERSION:
+            Log() << "Failed to initialize gl3w: OpenGL version too low!";
+            return EXIT_FAILURE;
+
+        default:
+            Log() << "Failed to initialize gl3w: Unknown error!";
+            return EXIT_FAILURE;
+    }
+
+    {
+        std::vector<std::pair<char const *, bool>> requiredExtensions =
+        {
+            std::make_pair("GL_ARB_direct_state_access", false),
+        };
+
+        int count;
+        glGetIntegerv(GL_NUM_EXTENSIONS, &count);
+        for(int i = 0; i < count; i++)
+        {
+            auto * str = glGetStringi(GL_EXTENSIONS, i);
+            for(auto & ext : requiredExtensions)
+                ext.second |=  (0 == _strcmpi(reinterpret_cast<char const *>(str), ext.first));
+        }
+
+        for(auto const & ext  : requiredExtensions)
+        {
+            if(!ext.second)
+                Log() << "Extension " << ext.first << " was not found. Program may not function properly!";
+        }
+    }
+
+    if(glCreateVertexArrays == nullptr)
+    {
+        Log() << "Monkey patching glCreateVertexArrays with glGenVertexArrays...";
+        glCreateVertexArrays = glGenVertexArrays;
+    }
+
+
+    Log() << "Initializing...";
+
+    MidiV::Initialize();
+
+    Log() << "Initialized!";
+
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    MidiV::Resize(w, h);
+
+    bool done = false;
+    do
+    {
+        SDL_Event e;
+        while(SDL_PollEvent(&e))
+        {
+            if(e.type == SDL_QUIT)
+                done = true;
+            if((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_ESCAPE))
+                done = true;
+            if((e.type == SDL_WINDOWEVENT) && (e.window.event == SDL_WINDOWEVENT_RESIZED))
+            {
+                SDL_GetWindowSize(window, &w, &h);
+                MidiV::Resize(w, h);
+            }
+        }
+
+        MidiV::Render();
+
+        SDL_GL_SwapWindow(window);
+
+    } while(!done);
 }
