@@ -12,13 +12,16 @@
 	],
 
 	"mappings": [
-		{ "cc": 7, "uniform": "uVolume" },
-		{ "cc": 2, "uniform": "uBreath" }
+		{ "uniform": "uPlasmaScale", "value": 2.5 },
+		{ "uniform": "uGrayLevel", "cc": 7 }
 	],
 
 	"pipeline": [
 		{
 			"sources": [ "plasmose.frag" ]
+		},
+		{
+			"sources": [ "grayscale.frag" ]
 		}
 	]
 }

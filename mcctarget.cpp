@@ -8,7 +8,7 @@ MCCTarget MCCTarget::load(nlohmann::json const & override)
 	if(override.find("value") != override.end())
 	{
 		target.type = Fixed;
-		target.value = uint8_t(override["value"].get<int>());
+		target.value = override["value"].get<double>();
 	}
 	else if(override.find("cc") != override.end())
 	{

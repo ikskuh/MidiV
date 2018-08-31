@@ -81,4 +81,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     visualization/plasmose.vis \
     visualization/plasmose.frag \
-    midiv.cfg
+    midiv.cfg \
+    visualization/grayscale.frag

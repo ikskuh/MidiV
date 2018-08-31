@@ -25,8 +25,6 @@ static float totalTime, deltaTime;
 
 static GLuint backgroundTexture;
 
-static glm::ivec2 mouse;
-
 static struct
 {
 	GLuint texFFT, texChannels;
@@ -149,15 +147,15 @@ void MidiV::Initialize(nlohmann::json const & config)
 		u.assertType(GL_FLOAT);
         glProgramUniform1f(sh.program, u.position, deltaTime);
 	};
+	uniformMappings["uPitchWheel"] = [](MShader const & sh, MUniform const & u, unsigned int &)
+	{
+		u.assertType(GL_FLOAT);
+        glProgramUniform1f(sh.program, u.position, float(syncmidi.pitch));
+	};
     uniformMappings["uScreenSize"] = [](MShader const & sh, MUniform const & u, unsigned int &)
 	{
 		u.assertType(GL_INT_VEC2);
         glProgramUniform2i(sh.program, u.position, width, height);
-	};
-    uniformMappings["uMousePos"] = [](MShader const & sh, MUniform const & u, unsigned int &)
-	{
-		u.assertType(GL_INT_VEC2);
-        glProgramUniform2i(sh.program, u.position, mouse.x, mouse.y);
 	};
     uniformMappings["uBackground"] = [](MShader const & sh, MUniform const & u, unsigned int & slot)
 	{
@@ -218,34 +216,41 @@ void MidiV::Resize(int w, int h)
     height = h;
 }
 
-
-static void bindCCUniformValue(GLuint pgm, MUniform const & uniform, uint8_t value)
+static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const & cc)
 {
+	double value;
+	switch(cc.type)
+	{
+		case MCCTarget::Unknown:
+			value = 0;
+			break;
+		case MCCTarget::Fixed:
+			value = cc.value;
+			break;
+		case MCCTarget::CC:
+			value = syncmidi.channels[cc.channel].ccs[cc.cc] / 127.0;
+			break;
+	}
+
 	switch(uniform.type)
 	{
 		case GL_FLOAT:
-			glProgramUniform1f(pgm, uniform.position, GLfloat(value / 127.0));
+			glProgramUniform1f(pgm, uniform.position, GLfloat(value));
 			break;
 		case GL_DOUBLE:
-			glProgramUniform1d(pgm, uniform.position, GLdouble(value / 127.0));
+			glProgramUniform1d(pgm, uniform.position, GLdouble(value));
 			break;
 
 		case GL_INT:
-			glProgramUniform1i(pgm, uniform.position, GLint(value));
+			glProgramUniform1i(pgm, uniform.position, GLint(127.0 * value));
 			break;
 		case GL_UNSIGNED_INT:
-			glProgramUniform1ui(pgm, uniform.position, GLuint(value));
+			glProgramUniform1ui(pgm, uniform.position, GLuint(127.0 * value));
 			break;
 
 		default:
 			Log() << "Mapped uniform " << uniform.name << " has an unsupported type!";
 	}
-}
-
-static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const & cc)
-{
-	auto const & value = syncmidi.channels[cc.channel].ccs[cc.cc];
-	bindCCUniformValue(pgm, uniform, value);
 }
 
 void MidiV::Render()
@@ -347,15 +352,7 @@ void MidiV::Render()
 					auto mapping = vis.ccMapping.find(name);
 					if(override != globalCCs.end())
 					{
-						switch(override->second.type)
-						{
-							case MCCTarget::Fixed:
-								bindCCUniformValue(pgm, uniform, override->second.value);
-								break;
-							case MCCTarget::CC:
-								bindCCUniform(pgm, uniform, override->second);
-								break;
-						}
+						bindCCUniform(pgm, uniform, override->second);
 					}
 					else if(resource != vis.resources.end())
 					{
@@ -464,9 +461,17 @@ void midiCallback( double timeStamp, std::vector<unsigned char> * message, void 
 			else
 				mididata.channels[chan].notes[message->at(1) & 0x7F].release();
 			break;
+
 		case MidiMsg::ControlChange:
 			mididata.channels[chan].ccs[message->at(1) & 0x7F] = message->at(2);
 			break;
+
+		case MidiMsg::PitchWheelChange: {
+			int pitch = (message->at(2) << 7) | message->at(1);
+			mididata.channels[chan].pitch = (pitch - 0x2000) / double(0x2000);
+			mididata.pitch = mididata.channels[chan].pitch;
+			break;
+		}
 		default: {
 			std::stringstream stream;
 			for(unsigned int i = 0; i < message->size(); i++)
@@ -478,72 +483,4 @@ void midiCallback( double timeStamp, std::vector<unsigned char> * message, void 
 			Log() << "Unknown MIDI event @" << timeStamp << " of length " << message->size() << ": " << stream.str();
 		}
 	}
-
 }
-
-/*
-void MVisualizationContainer::sequencerEvent( drumstick::SequencerEvent* ev )
-{
-	using namespace drumstick;
-
-	std::lock_guard<std::mutex> lock(this->mididataMutex);
-
-	switch(ev->getSequencerType())
-	{
-		case SND_SEQ_EVENT_NOTEON: {
-			auto * e = static_cast<NoteOnEvent*>(ev);
-			if(e->getVelocity() > 0)
-				this->mididata.channels[e->getChannel()].notes[e->getKey()].attack(e->getVelocity() / 127.0);
-			else
-				this->mididata.channels[e->getChannel()].notes[e->getKey()].release();
-			break;
-		}
-		case SND_SEQ_EVENT_NOTEOFF: {
-			auto * e = static_cast<NoteOffEvent*>(ev);
-			this->mididata.channels[e->getChannel()].notes[e->getKey()].release();
-			break;
-		}
-		case SND_SEQ_EVENT_PGMCHANGE: {
-			auto *e = static_cast<ProgramChangeEvent*>(ev);
-            Log()
-				<< "Program Change"
-				<< e->getChannel()
-				<< e->getValue()
-				;
-			this->mididata.channels[e->getChannel()].instrument = uint8_t(e->getValue());
-			break;
-		}
-		case SND_SEQ_EVENT_CONTROL14:
-	    case SND_SEQ_EVENT_NONREGPARAM:
-	    case SND_SEQ_EVENT_REGPARAM:
-	    case SND_SEQ_EVENT_CONTROLLER:
-		{
-	        auto * e = static_cast<ControllerEvent*>(ev);
-			this->mididata.channels[e->getChannel()].ccs[e->getParam()] = e->getValue() / 127.0;
-	        break;
-	    }
-	}
-	delete ev;
-}
-*/
-
-/*
-void MVisualizationContainer::mousePressEvent(QMouseEvent * event)
-{
-	this->mouseMoveEvent(event);
-}
-
-void MVisualizationContainer::mouseMoveEvent(QMouseEvent * event)
-{
-	this->mouse = glm::ivec2(event->x(), this->height - event->y() - 1);
-    Log()
-		<< "Mouse Pos: ("
-		<< this->mouse.x
-	    << this->mouse.y
-	    << "), ("
-	    << this->mouse.x / double(this->width - 1)
-	    << this->mouse.y / double(this->height - 1)
-	    << ")"
-		;
-}
-*/
