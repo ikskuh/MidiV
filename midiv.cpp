@@ -37,7 +37,14 @@ static std::unique_ptr<RtMidiIn> midi;
 
 static void nop() { }
 
-static std::map<std::string, MCCTarget> globalCCs;
+struct MCCOverride : public MCCTarget
+{
+	enum Type { CC, Fixed };
+	Type type;
+	uint8_t value;
+};
+
+static std::map<std::string, MCCOverride> globalCCs;
 
 void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam)
 {
@@ -91,6 +98,32 @@ void MidiV::Initialize(nlohmann::json const & config)
     }
 
 	midi->ignoreTypes(); // no time, no sense, no sysex
+
+	// Load the global CC overrides
+	for(auto const & override : config["mappings"])
+	{
+		auto from = override["uniform"].get<std::string>();
+
+		MCCOverride target;
+		if(override.find("value") != override.end())
+		{
+			target.type = target.Fixed;
+			target.value = uint8_t(override["value"].get<int>());
+		}
+		else if(override.find("cc") != override.end())
+		{
+			target.type = target.CC;
+			target.cc = uint8_t(override["cc"].get<int>());
+			target.channel = uint8_t(Utils::get(override, "channel", 0));
+		}
+		else
+		{
+			Log() << "Uniform override " << from << " must have either cc or value assigned!";
+		}
+
+		globalCCs.emplace(from, target);
+	}
+
 
     glDebugMessageCallback(msglog, nullptr);
 
@@ -207,6 +240,36 @@ void MidiV::Resize(int w, int h)
     height = h;
 }
 
+
+static void bindCCUniformValue(GLuint pgm, MUniform const & uniform, uint8_t value)
+{
+	switch(uniform.type)
+	{
+		case GL_FLOAT:
+			glProgramUniform1f(pgm, uniform.position, GLfloat(value / 127.0));
+			break;
+		case GL_DOUBLE:
+			glProgramUniform1d(pgm, uniform.position, GLdouble(value / 127.0));
+			break;
+
+		case GL_INT:
+			glProgramUniform1i(pgm, uniform.position, GLint(value));
+			break;
+		case GL_UNSIGNED_INT:
+			glProgramUniform1ui(pgm, uniform.position, GLuint(value));
+			break;
+
+		default:
+			Log() << "Mapped uniform " << uniform.name << " has an unsupported type!";
+	}
+}
+
+static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const & cc)
+{
+	auto const & value = syncmidi.channels[cc.channel].ccs[cc.cc];
+	bindCCUniformValue(pgm, uniform, value);
+}
+
 void MidiV::Render()
 {
 	auto now = hrc::now();
@@ -301,36 +364,30 @@ void MidiV::Render()
 					auto const & name = tuple.first;
 					auto const & uniform = tuple.second;
 
+					auto override = globalCCs.find(name);
 					auto resource = vis.resources.find(name);
 					auto mapping = vis.ccMapping.find(name);
-					if(resource != vis.resources.end())
+					if(override != globalCCs.end())
+					{
+						switch(override->second.type)
+						{
+							case MCCOverride::Fixed:
+								bindCCUniformValue(pgm, uniform, override->second.value);
+								break;
+							case MCCOverride::CC:
+								bindCCUniform(pgm, uniform, override->second);
+								break;
+						}
+					}
+					else if(resource != vis.resources.end())
 					{
 						glBindTextureUnit(textureSlot, resource->second.texture);
-						glProgramUniform1i(pgm, uniform.position, textureSlot);
+						glProgramUniform1i(pgm, uniform.position, int(textureSlot));
 						textureSlot++;
 					}
 					else if(mapping != vis.ccMapping.end())
 					{
-						auto const & value = syncmidi.channels[mapping->second.channel].ccs[mapping->second.cc];
-						switch(uniform.type)
-						{
-							case GL_FLOAT:
-								glProgramUniform1f(pgm, uniform.position, GLfloat(value / 127.0));
-								break;
-							case GL_DOUBLE:
-								glProgramUniform1d(pgm, uniform.position, GLdouble(value / 127.0));
-								break;
-
-							case GL_INT:
-								glProgramUniform1i(pgm, uniform.position, GLint(value));
-								break;
-							case GL_UNSIGNED_INT:
-								glProgramUniform1ui(pgm, uniform.position, GLuint(value));
-								break;
-
-							default:
-								Log() << "Mapped uniform " << name << " has an unsupported type!";
-						}
+						bindCCUniform(pgm, uniform, mapping->second);
 					}
 					else
 					{
@@ -428,6 +485,9 @@ void midiCallback( double timeStamp, std::vector<unsigned char> * message, void 
 				mididata.channels[chan].notes[message->at(1) & 0x7F].attack(message->at(2) / 127.0);
 			else
 				mididata.channels[chan].notes[message->at(1) & 0x7F].release();
+			break;
+		case MidiMsg::ControlChange:
+			mididata.channels[chan].ccs[message->at(1) & 0x7F] = message->at(2);
 			break;
 		default: {
 			std::stringstream stream;
