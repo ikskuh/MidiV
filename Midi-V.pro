@@ -38,7 +38,7 @@ linux: {
 }
 win32: {
     DEFINES += MIDIV_WINDOWS __WINDOWS_MM__
-    LIBS += -lopengl32
+    LIBS += -lopengl32 -lwinmm
     INCLUDEPATH += $$quote(C:\lib\SDL2-2.0.8\include)
     DEPENDPATH += $$quote(C:\lib\SDL2-2.0.8\include)
     LIBS += -L$$quote(C:\lib\SDL2-2.0.8\lib\x64) -lSDL2 -lSDL2main

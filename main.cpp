@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
 
     Log() << "Initializing...";
-    MidiV::Initialize();
+    MidiV::Initialize(config);
     Log() << "Initialized!";
 
 	Log() << "Loading visualizations...";
@@ -163,4 +163,6 @@ int main(int argc, char *argv[])
         SDL_GL_SwapWindow(window);
 
     } while(!done);
+
+    return EXIT_SUCCESS;
 }

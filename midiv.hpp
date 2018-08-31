@@ -12,10 +12,11 @@
 #include <mutex>
 #include "mvisualization.hpp"
 #include <glm/glm.hpp>
+#include <json.hpp>
 
 namespace MidiV
 {
-    void Initialize();
+    void Initialize(nlohmann::json const & config);
 
 	void LoadVisualization(int slot, std::string const & fileName);
 

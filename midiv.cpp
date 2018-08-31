@@ -46,10 +46,19 @@ void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei
     (void)id;
     (void)severity;
     (void)userParam;
-    fprintf(stderr, "[OpenGL] ");
-    fwrite(message, length, 1, stderr);
-    fprintf(stderr, "\n");
-    fflush(stderr);
+
+    static std::string previousMessage;
+
+    std::string currentMessage(message, length);
+
+    if(currentMessage != previousMessage)
+    {
+        fprintf(stderr, "[OpenGL] ");
+        fwrite(message, length, 1, stderr);
+        fprintf(stderr, "\n");
+        fflush(stderr);
+    }
+    previousMessage = currentMessage;
 
     if(severity == GL_DEBUG_SEVERITY_HIGH)
         nop(); // point to break on
@@ -57,11 +66,30 @@ void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei
 
 static void midiCallback( double timeStamp, std::vector<unsigned char> *message, void *userData);
 
-void MidiV::Initialize()
+void MidiV::Initialize(nlohmann::json const & config)
 {
 	midi = std::make_unique<RtMidiIn>(RtMidi::UNSPECIFIED, "Midi-V");
 	midi->setCallback(midiCallback, nullptr);
-	midi->openVirtualPort("Visualization Input");
+
+    Log() << "Available midi ports:";
+    unsigned int const midiPortCount = midi->getPortCount();
+    for(unsigned int i = 0; i < midiPortCount; i++)
+    {
+        Log() << "[" << i << "] " << midi->getPortName(i);
+    }
+
+    // Windows does not support virtual midi ports by-api
+#ifndef MIDIV_WINDOWS
+    if(Utils::get(config, "useVirtualMidi", true))
+    {
+        midi->openVirtualPort("Visualization Input");
+    }
+    else
+#endif
+    {
+        midi->openPort(Utils::get(config, "midiPort", 0), "Visualization Input");
+    }
+
 	midi->ignoreTypes(); // no time, no sense, no sysex
 
     glDebugMessageCallback(msglog, nullptr);
@@ -169,7 +197,7 @@ void MidiV::LoadVisualization(int slot, std::string const & fileName)
 
 void MidiV::Resize(int w, int h)
 {
-    Log() << "Resize to " << w << "×" << h;
+    Log() << "Resize to " << w << "*" << h;
 	glViewport(0, 0, w, h);
     for(auto & vis : visualizations)
 	{
@@ -203,8 +231,8 @@ void MidiV::Render()
 	{
 		for(int n = 0; n < 128; n++)
 		{
-            summidi.channels[c].ccs[n] += deltaTime * syncmidi.channels[c].ccs[n];
-            summidi.channels[c].notes[n].value += deltaTime * syncmidi.channels[c].notes[n].value;
+            summidi.channels[c].ccs[n]         += double(deltaTime) * syncmidi.channels[c].ccs[n];
+            summidi.channels[c].notes[n].value += double(deltaTime) * syncmidi.channels[c].notes[n].value;
 		}
 	}
 
@@ -220,8 +248,8 @@ void MidiV::Render()
 			{
 				if(y != 9)
 				{
-					fft[x].x += syncmidi.channels[y].notes[x].value;
-					fft[x].y += summidi.channels[y].notes[x].value;
+                    fft[x].x += float(syncmidi.channels[y].notes[x].value);
+                    fft[x].y += float(summidi.channels[y].notes[x].value);
 				}
 				channels[y][x].x = float(syncmidi.channels[y].notes[x].value);
 				channels[y][x].y = float(syncmidi.channels[y].ccs[x]);

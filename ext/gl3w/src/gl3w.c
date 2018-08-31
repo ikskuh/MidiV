@@ -145,16 +145,15 @@ static int parse_version(void)
 
 static void load_procs(GL3WGetProcAddressProc proc);
 
-static void print_missing_proc(char const * procName)
-{
-	fprintf(stderr, "Call to non-existent function %s!\n", procName);
-	fflush(stderr);
-}
-
 static void noop_proc()
 {
-	fprintf(stderr, "Call to non-existent GL function!\n");
-	fflush(stderr);
+    static int hadNotification = 0;
+    if(!hadNotification)
+    {
+        fprintf(stderr, "Call to non-existent GL function!\n");
+        fflush(stderr);
+        hadNotification = 1;
+    }
 }
 
 static GL3WglProc get_or_thunk_proc(char const * procName)
