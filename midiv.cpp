@@ -37,14 +37,7 @@ static std::unique_ptr<RtMidiIn> midi;
 
 static void nop() { }
 
-struct MCCOverride : public MCCTarget
-{
-	enum Type { CC, Fixed };
-	Type type;
-	uint8_t value;
-};
-
-static std::map<std::string, MCCOverride> globalCCs;
+static std::map<std::string, MCCTarget> globalCCs;
 
 void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam)
 {
@@ -104,22 +97,7 @@ void MidiV::Initialize(nlohmann::json const & config)
 	{
 		auto from = override["uniform"].get<std::string>();
 
-		MCCOverride target;
-		if(override.find("value") != override.end())
-		{
-			target.type = target.Fixed;
-			target.value = uint8_t(override["value"].get<int>());
-		}
-		else if(override.find("cc") != override.end())
-		{
-			target.type = target.CC;
-			target.cc = uint8_t(override["cc"].get<int>());
-			target.channel = uint8_t(Utils::get(override, "channel", 0));
-		}
-		else
-		{
-			Log() << "Uniform override " << from << " must have either cc or value assigned!";
-		}
+		auto target = MCCTarget::load(override);
 
 		globalCCs.emplace(from, target);
 	}
@@ -371,10 +349,10 @@ void MidiV::Render()
 					{
 						switch(override->second.type)
 						{
-							case MCCOverride::Fixed:
+							case MCCTarget::Fixed:
 								bindCCUniformValue(pgm, uniform, override->second.value);
 								break;
-							case MCCOverride::CC:
+							case MCCTarget::CC:
 								bindCCUniform(pgm, uniform, override->second);
 								break;
 						}

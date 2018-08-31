@@ -16,11 +16,7 @@ MVisualization::MVisualization(nlohmann::json const & data)
 	for(auto const & subdata : data["mappings"])
 	{
 		auto from = subdata["uniform"].get<std::string>();
-
-		MCCTarget target;
-		target.cc = uint8_t(subdata["cc"].get<int>());
-		target.channel = uint8_t(Utils::get(subdata, "channel", 0));
-
+		auto target = MCCTarget::load(subdata);
 		this->ccMapping.emplace(from, target);
 	}
 

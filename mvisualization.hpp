@@ -5,6 +5,7 @@
 #include "mmidistate.hpp"
 #include "mshader.hpp"
 #include "mresource.hpp"
+#include "mcctarget.hpp"
 
 #include <string>
 #include <vector>
@@ -14,12 +15,6 @@ struct MRenderStage
 {
 	MShader shader;
 	GLuint renderTarget;
-};
-
-struct MCCTarget
-{
-	uint8_t channel;
-	uint8_t cc;
 };
 
 struct MVisualization

@@ -55,7 +55,8 @@ SOURCES += \
     mresource.cpp \
     stbi_impl.c \
     midiv.cpp \
-    hal.cpp
+    hal.cpp \
+    mcctarget.cpp
 
 HEADERS += \
     mshader.hpp \
@@ -66,7 +67,8 @@ HEADERS += \
     midiv.hpp \
     hal.hpp \
     debug.hpp \
-    utils.hpp
+    utils.hpp \
+    mcctarget.hpp
 
 SOURCES += $$quote($$PWD/ext/gl3w/src/gl3w.c)
 SOURCES += $$quote($$PWD/ext/rtmidi/RtMidi.cpp)
