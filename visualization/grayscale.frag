@@ -1,7 +1,5 @@
 #version 330
 
-uniform float uPitchWheel;
-
 uniform float uGrayLevel;
 
 uniform sampler2D uBackground;
@@ -29,10 +27,8 @@ void main()
 {
 	vec4 color = texture(uBackground, fUV);
 
-	float f = abs(uPitchWheel) - min(0.0, uPitchWheel);
-
 	fragment = mix(
 		vec4(vec3(luminosity(color.rgb)), color.a),
 		color,
-		uGrayLevel + f);
+		uGrayLevel);
 }

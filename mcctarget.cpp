@@ -2,24 +2,36 @@
 #include "debug.hpp"
 #include "utils.hpp"
 
+MCCTarget::MCCTarget() : type(Unknown), channel(0xFF), value(0.0), cc(0)
+{
+}
+
 MCCTarget MCCTarget::load(nlohmann::json const & override)
 {
+	auto const src = Utils::get(override, "source", std::string(""));
+
 	MCCTarget target;
-	if(override.find("value") != override.end())
+	target.channel = uint8_t(Utils::get(override, "channel", 0xFF));
+	target.priority = Utils::get(override, "priority", 0.0);
+
+	if((src == "value") || ((src == "") && override.find("value") != override.end()))
 	{
 		target.type = Fixed;
 		target.value = override["value"].get<double>();
 	}
-	else if(override.find("cc") != override.end())
+	else if((src == "cc") || ((src == "") && override.find("cc") != override.end()))
 	{
 		target.type = CC;
 		target.cc = uint8_t(override["cc"].get<int>());
-		target.channel = uint8_t(Utils::get(override, "channel", 0));
+	}
+	else if(src == "pitch")
+	{
+		target.type = Pitch;
 	}
 	else
 	{
 		target.type = Unknown;
-		Log() << "Uniform specifier must have either cc or value assigned!";
+		Log() << "Uniform specifier must have either source, cc or value assigned!";
 	}
 	return target;
 }

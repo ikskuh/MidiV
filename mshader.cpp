@@ -54,6 +54,14 @@ MShader::MShader(nlohmann::json const & data)
         }
 	}
 
+	for(auto const & src : data["bindings"])
+	{
+		this->bindings.emplace(
+			src["uniform"].get<std::string>(),
+			MCCTarget::load(src)
+			);
+	}
+
 	std::vector<GLchar const *> sources;
 	std::transform(
 		strings.begin(), strings.end(),

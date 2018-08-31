@@ -1,8 +1,9 @@
 #ifndef MSHADER_HPP
 #define MSHADER_HPP
 
-#include "json.hpp"
+#include "mcctarget.hpp"
 
+#include <json.hpp>
 #include <GL/gl3w.h>
 
 struct MUniform
@@ -22,6 +23,7 @@ struct MShader
 {
 	GLuint program;
     std::map<std::string, MUniform> uniforms;
+	std::map<std::string, MCCTarget> bindings;
 
 	MShader();
 	explicit MShader(nlohmann::json const & data);

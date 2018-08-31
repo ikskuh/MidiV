@@ -91,7 +91,7 @@ void MidiV::Initialize(nlohmann::json const & config)
 	midi->ignoreTypes(); // no time, no sense, no sysex
 
 	// Load the global CC overrides
-	for(auto const & override : config["mappings"])
+	for(auto const & override : config["bindings"])
 	{
 		auto from = override["uniform"].get<std::string>();
 
@@ -228,7 +228,16 @@ static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const 
 			value = cc.value;
 			break;
 		case MCCTarget::CC:
-			value = syncmidi.channels[cc.channel].ccs[cc.cc] / 127.0;
+			if(cc.hasChannel())
+				value = syncmidi.channels[cc.channel].ccs[cc.cc];
+			else
+				value = syncmidi.ccs[cc.cc];
+			break;
+		case MCCTarget::Pitch:
+			if(cc.hasChannel())
+				value= syncmidi.channels[cc.channel].pitch;
+			else
+				value = syncmidi.pitch;
 			break;
 	}
 
@@ -251,6 +260,14 @@ static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const 
 		default:
 			Log() << "Mapped uniform " << uniform.name << " has an unsupported type!";
 	}
+}
+
+template<typename T>
+static void transfer(std::vector<MCCTarget> & dest, T const & src, std::string const & elem)
+{
+	auto it = src.find(elem);
+	if(it != src.end())
+		dest.push_back(it->second);
 }
 
 void MidiV::Render()
@@ -347,30 +364,36 @@ void MidiV::Render()
 					auto const & name = tuple.first;
 					auto const & uniform = tuple.second;
 
-					auto override = globalCCs.find(name);
 					auto resource = vis.resources.find(name);
-					auto mapping = vis.ccMapping.find(name);
-					if(override != globalCCs.end())
-					{
-						bindCCUniform(pgm, uniform, override->second);
-					}
-					else if(resource != vis.resources.end())
+					auto predefined = uniformMappings.find(name);
+
+					std::vector<MCCTarget> sources;
+					transfer(sources, globalCCs, name);
+					transfer(sources, vis.ccMapping, name);
+					transfer(sources, stage.shader.bindings, name);
+					std::sort(
+						sources.begin(), sources.end(),
+						[](MCCTarget const & lhs, MCCTarget const & rhs)
+						{
+							return lhs.priority < rhs.priority;
+						});
+
+					// first, check for a provided image resource
+					if(resource != vis.resources.end())
 					{
 						glBindTextureUnit(textureSlot, resource->second.texture);
 						glProgramUniform1i(pgm, uniform.position, int(textureSlot));
 						textureSlot++;
 					}
-					else if(mapping != vis.ccMapping.end())
+					// second, check for a float uniform source
+					else if(sources.size() > 0)
 					{
-						bindCCUniform(pgm, uniform, mapping->second);
+						bindCCUniform(pgm, uniform, sources.front());
 					}
-					else
+					// and last, check for a predefined uniform mapping
+					else if(predefined != uniformMappings.end())
 					{
-                        auto mapping = uniformMappings.find(name);
-                        if(mapping != uniformMappings.end())
-						{
-							mapping->second(stage.shader, uniform, textureSlot);
-						}
+						predefined->second(stage.shader, uniform, textureSlot);
 					}
 				}
 			}
@@ -463,7 +486,8 @@ void midiCallback( double timeStamp, std::vector<unsigned char> * message, void 
 			break;
 
 		case MidiMsg::ControlChange:
-			mididata.channels[chan].ccs[message->at(1) & 0x7F] = message->at(2);
+			mididata.channels[chan].ccs[message->at(1) & 0x7F] = message->at(2) / 127.0;
+			mididata.ccs[message->at(1) & 0x7F] = mididata.channels[chan].ccs[message->at(1) & 0x7F];
 			break;
 
 		case MidiMsg::PitchWheelChange: {

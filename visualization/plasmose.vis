@@ -11,17 +11,20 @@
 		}
 	],
 
-	"mappings": [
-		{ "uniform": "uPlasmaScale", "value": 2.5 },
-		{ "uniform": "uGrayLevel", "cc": 7 }
+	"bindings": [
+		{ "uniform": "uPlasmaScale", "value": 2.5 }
 	],
 
 	"pipeline": [
 		{
-			"sources": [ "plasmose.frag" ]
+			"sources": [ "plasmose.frag" ],
+			"bindings": [ ]
 		},
 		{
-			"sources": [ "grayscale.frag" ]
+			"sources": [ "grayscale.frag" ],
+			"bindings": [
+				{ "uniform": "uGrayLevel", "source": "pitch" }
+			]
 		}
 	]
 }

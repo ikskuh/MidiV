@@ -13,7 +13,7 @@ MVisualization::MVisualization(nlohmann::json const & data)
 	}
 
 	// load all cc mappings
-	for(auto const & subdata : data["mappings"])
+	for(auto const & subdata : data["bindings"])
 	{
 		auto from = subdata["uniform"].get<std::string>();
 		auto target = MCCTarget::load(subdata);

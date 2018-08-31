@@ -30,6 +30,9 @@ struct MMidiState
 	//! global pitch (ignores channel pitches and takes last received event)
 	double pitch;
 
+	//! global CCs (ignores channels and takes last received event for value)
+	double ccs[128];
+
 	//! Current state of all channels
 	MMidiChannel channels[16];
 };
