@@ -37,6 +37,8 @@ static std::unique_ptr<RtMidiIn> midi;
 
 static void nop() { }
 
+static std::map<std::string, MCCTarget> globalCCs;
+
 void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam)
 {
     (void)source;
@@ -263,6 +265,8 @@ void MidiV::Render()
 
 			glUseProgram(stage.shader.program);
 			{
+				const GLuint pgm = stage.shader.program;
+
 				unsigned int textureSlot = 0;
 				for(auto const & tuple : stage.shader.uniforms)
 				{
@@ -270,11 +274,35 @@ void MidiV::Render()
 					auto const & uniform = tuple.second;
 
 					auto resource = vis.resources.find(name);
+					auto mapping = vis.ccMapping.find(name);
 					if(resource != vis.resources.end())
 					{
 						glBindTextureUnit(textureSlot, resource->second.texture);
-						glProgramUniform1i(stage.shader.program, uniform.position, textureSlot);
+						glProgramUniform1i(pgm, uniform.position, textureSlot);
 						textureSlot++;
+					}
+					else if(mapping != vis.ccMapping.end())
+					{
+						auto const & value = syncmidi.channels[mapping->second.channel].ccs[mapping->second.cc];
+						switch(uniform.type)
+						{
+							case GL_FLOAT:
+								glProgramUniform1f(pgm, uniform.position, GLfloat(value / 127.0));
+								break;
+							case GL_DOUBLE:
+								glProgramUniform1d(pgm, uniform.position, GLdouble(value / 127.0));
+								break;
+
+							case GL_INT:
+								glProgramUniform1i(pgm, uniform.position, GLint(value));
+								break;
+							case GL_UNSIGNED_INT:
+								glProgramUniform1ui(pgm, uniform.position, GLuint(value));
+								break;
+
+							default:
+								Log() << "Mapped uniform " << name << " has an unsupported type!";
+						}
 					}
 					else
 					{

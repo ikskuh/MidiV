@@ -1,4 +1,5 @@
 #include "mvisualization.hpp"
+#include "utils.hpp"
 
 MVisualization::MVisualization(nlohmann::json const & data)
 {
@@ -14,9 +15,13 @@ MVisualization::MVisualization(nlohmann::json const & data)
 	// load all cc mappings
 	for(auto const & subdata : data["mappings"])
 	{
-		auto from = uint8_t(subdata["cc"].get<int>());
-        auto to   = subdata["uniform"].get<std::string>();
-		this->ccMapping.emplace(from, to);
+		auto from = subdata["uniform"].get<std::string>();
+
+		MCCTarget target;
+		target.cc = uint8_t(subdata["cc"].get<int>());
+		target.channel = uint8_t(Utils::get(subdata, "channel", 0));
+
+		this->ccMapping.emplace(from, target);
 	}
 
 	// load all shaders

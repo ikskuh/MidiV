@@ -16,6 +16,12 @@ struct MRenderStage
 	GLuint renderTarget;
 };
 
+struct MCCTarget
+{
+	uint8_t channel;
+	uint8_t cc;
+};
+
 struct MVisualization
 {
 	MVisualization() = default;
@@ -25,7 +31,7 @@ struct MVisualization
 
     std::string title;
     std::map<std::string,MResource> resources;
-    std::map<uint8_t,std::string> ccMapping;
+    std::map<std::string, MCCTarget> ccMapping;
 	std::vector<MRenderStage> stages;
 
 	GLuint resultingImage;
