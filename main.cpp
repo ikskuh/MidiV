@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
         int count;
         glGetIntegerv(GL_NUM_EXTENSIONS, &count);
-        for(int i = 0; i < count; i++)
+        for(unsigned int i = 0; i < static_cast<unsigned int>(count); i++)
         {
             auto * str = glGetStringi(GL_EXTENSIONS, i);
             for(auto & ext : requiredExtensions)
@@ -171,6 +171,8 @@ int main(int argc, char *argv[])
         MidiV::Render();
 
         SDL_GL_SwapWindow(window);
+
+        SDL_Delay(1);
 
     } while(!done);
 

@@ -18,7 +18,9 @@
 	"pipeline": [
 		{
 			"sources": [ "plasmose.frag" ],
-			"bindings": [ ]
+                        "bindings": [
+                            { "uniform": "uTime", "value": 0.0 }
+                        ]
 		},
 		{
 			"sources": [ "hueshift.frag" ],

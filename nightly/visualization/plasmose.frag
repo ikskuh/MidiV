@@ -20,9 +20,6 @@ uniform float uDeltaTime;
 // Size of the screen in pixels
 uniform ivec2 uScreenSize;
 
-// Mouse position in pixels
-uniform ivec2 uMousePos;
-
 // Contains a 1D texture per channel with all note values in `.x` and all CC values in `.y`.
 // `z` contains the note values integrated over time,
 // `w` contains the CC values over time.
@@ -40,6 +37,7 @@ uniform sampler2D uBackground;
 
 uniform sampler1D rGradient;
 
+uniform float uPlasmaScale;
 
 vec3 hsv2rgb(vec3 c)
 {
@@ -53,9 +51,11 @@ float plasma(vec2 uv, float iTime)
 	uv *= 2.0;
 	uv -= 1.0;
 
+	uv *= uPlasmaScale;
+
 	return sin(uv.x + iTime)
 		+ 0.4 * sin(1.3 * uv.y + 0.3 * iTime)
-		+ sin(uv.y + iTime + 2)
+		+       sin(1.0 * uv.y + iTime + 2)
 		+ 1.2 * sin(0.3 * uv.y + 0.7 * iTime)
 		;
 }

@@ -11,14 +11,20 @@
 		}
 	],
 
-	"mappings": [
-		{ "cc": 7, "uniform": "uVolume" },
-		{ "cc": 2, "uniform": "uBreath" }
+	"bindings": [
+		{ "uniform": "uPlasmaScale", "value": 2.5 }
 	],
 
 	"pipeline": [
 		{
-			"sources": [ "plasmose.frag" ]
+			"sources": [ "plasmose.frag" ],
+			"bindings": [ ]
+		},
+		{
+			"sources": [ "hueshift.frag" ],
+			"bindings": [
+				{ "uniform": "uHueShift", "source": "pitch" }
+			]
 		}
 	]
 }
