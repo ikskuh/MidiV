@@ -125,6 +125,10 @@ int main(int argc, char *argv[])
 
     Log() << "Initializing...";
     MidiV::Initialize(config);
+
+	if(Utils::HasError())
+		return EXIT_FAILURE;
+
     Log() << "Initialized!";
 
 	Log() << "Loading visualizations...";
@@ -135,11 +139,17 @@ int main(int argc, char *argv[])
 		MidiV::LoadVisualization(index++, vis.get<std::string>());
 	}
 
+	if(Utils::HasError())
+		return EXIT_FAILURE;
+
 	Log() << "Visualizations ready!";
 
     int w, h;
     SDL_GetWindowSize(window, &w, &h);
     MidiV::Resize(w, h);
+
+	if(Utils::HasError())
+		return EXIT_FAILURE;
 
     bool done = false;
     do
@@ -166,3 +176,9 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
+
+static volatile bool error_flag = false;
+
+bool Utils::HasError() { return error_flag; }
+void Utils::FlagError() { error_flag = true; }
+void Utils::ResetError() { error_flag = false; }

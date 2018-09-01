@@ -82,4 +82,7 @@ DISTFILES += \
     visualization/plasmose.vis \
     visualization/plasmose.frag \
     midiv.cfg \
-    visualization/grayscale.frag
+    visualization/grayscale.frag \
+    visualization/hueshift.frag \
+    visualization/image-rotate.vis \
+    visualization/pattern-spiral.frag

@@ -12,6 +12,10 @@ namespace Utils
     using Byte = std::uint8_t;
     using ByteArray = std::vector<Byte>;
 
+	bool HasError();
+	void FlagError();
+	void ResetError();
+
     template<typename T>
     class Optional
     {

@@ -1,0 +1,22 @@
+{
+	"_type": "midi-v:visualization",
+	"_version": "1.0",
+	"title": "Image Spiral",
+
+	"resources": [
+		{
+			"name": "rPattern",
+			"type": "sampler2D",
+			"file": "pattern1.jpg"
+		}
+	],
+
+	"bindings": [ ],
+
+	"pipeline": [
+		{
+			"sources": [ "pattern-spiral.frag" ],
+			"bindings": [ ]
+		}
+	]
+}

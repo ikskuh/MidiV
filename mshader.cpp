@@ -46,6 +46,7 @@ MShader::MShader(nlohmann::json const & data)
         if(!data)
         {
             Log() << "Could not find " << name;
+			Utils::FlagError();
         }
         else
         {
@@ -78,6 +79,11 @@ MShader::MShader(nlohmann::json const & data)
 	glAttachShader(this->program, getVertexShader());
 	glAttachShader(this->program, sh);
 	glLinkProgram(this->program);
+
+	GLint status;
+	glGetProgramiv(this->program, GL_LINK_STATUS, &status);
+	if(status != GL_TRUE)
+		Utils::FlagError();
 
 	GLint count;
 	glGetProgramiv(this->program, GL_ACTIVE_UNIFORMS, &count);

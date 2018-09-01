@@ -21,9 +21,9 @@
 			"bindings": [ ]
 		},
 		{
-			"sources": [ "grayscale.frag" ],
+			"sources": [ "hueshift.frag" ],
 			"bindings": [
-				{ "uniform": "uGrayLevel", "source": "pitch" }
+				{ "uniform": "uHueShift", "source": "pitch" }
 			]
 		}
 	]
