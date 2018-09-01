@@ -2,7 +2,7 @@
 #include "debug.hpp"
 #include "utils.hpp"
 
-MCCTarget::MCCTarget() : type(Unknown), channel(0xFF), value(0.0), cc(0)
+MCCTarget::MCCTarget() : type(Unknown), channel(0xFF), scale(1.0), value(0.0), cc(0)
 {
 }
 
@@ -13,6 +13,7 @@ MCCTarget MCCTarget::load(nlohmann::json const & override)
 	MCCTarget target;
 	target.channel = uint8_t(Utils::get(override, "channel", 0xFF));
 	target.priority = Utils::get(override, "priority", 0.0);
+    target.scale = Utils::get(override, "scale", 1.0);
 
 	if((src == "value") || ((src == "") && override.find("value") != override.end()))
 	{

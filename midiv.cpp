@@ -240,6 +240,7 @@ static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const 
 				value = syncmidi.pitch;
 			break;
 	}
+    value *= cc.scale;
 
 	switch(uniform.type)
 	{

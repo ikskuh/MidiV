@@ -68,7 +68,8 @@ HEADERS += \
     hal.hpp \
     debug.hpp \
     utils.hpp \
-    mcctarget.hpp
+    mcctarget.hpp \
+    ccs.hpp
 
 SOURCES += $$quote($$PWD/ext/gl3w/src/gl3w.c)
 SOURCES += $$quote($$PWD/ext/rtmidi/RtMidi.cpp)

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cmath>
 #include <glm/glm.hpp>
+#include <array>
 
 struct MMidiNote
 {
@@ -19,22 +20,26 @@ struct MMidiNote
 
 struct MMidiChannel
 {
+    MMidiChannel();
+
 	uint8_t instrument;
-	double pitch;
-	double ccs[128];
-	MMidiNote notes[128];
+    double pitch;
+    std::array<double, 128> ccs;
+    std::array<MMidiNote, 128> notes;
 };
 
 struct MMidiState
 {
+    MMidiState();
+
 	//! global pitch (ignores channel pitches and takes last received event)
 	double pitch;
 
 	//! global CCs (ignores channels and takes last received event for value)
-	double ccs[128];
+    std::array<double, 128> ccs;
 
 	//! Current state of all channels
-	MMidiChannel channels[16];
+    std::array<MMidiChannel, 16> channels;
 };
 
 #endif // MMIDISTATE_HPP

@@ -12,6 +12,7 @@ struct MCCTarget
 	Type type;
 	uint8_t channel;
 	double priority;
+    double scale;
 
 	double value;
 	uint8_t cc;
