@@ -86,4 +86,11 @@ DISTFILES += \
     visualization/grayscale.frag \
     visualization/hueshift.frag \
     visualization/image-rotate.vis \
-    visualization/pattern-spiral.frag
+    visualization/pattern-spiral.frag \
+    visualization/midi-pattern.vis \
+    visualization/midi-pattern.frag \
+    visualization/rotate.frag \
+    visualization/bulge.frag \
+    visualization/sound-circle.frag \
+    visualization/the-grid.vis \
+    visualization/the-grid.frag

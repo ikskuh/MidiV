@@ -2,7 +2,7 @@
 #include "debug.hpp"
 #include "utils.hpp"
 
-MCCTarget::MCCTarget() : type(Unknown), channel(0xFF), scale(1.0), value(0.0), cc(0)
+MCCTarget::MCCTarget() : type(Unknown), channel(0xFF), scale(1.0), value(0.0), index(0)
 {
 }
 
@@ -23,7 +23,17 @@ MCCTarget MCCTarget::load(nlohmann::json const & override)
 	else if((src == "cc") || ((src == "") && override.find("cc") != override.end()))
 	{
 		target.type = CC;
-		target.cc = uint8_t(override["cc"].get<int>());
+		target.index = uint8_t(override["cc"].get<int>());
+	}
+	else if((src == "note") || ((src == "") && override.find("note") != override.end()))
+	{
+		target.type = Note;
+		target.index = uint8_t(override["note"].get<int>());
+		if(target.channel == 0xFF)
+		{
+			target.channel = 0;
+			Log() << "Note binding requires a channel, defaulting to channel " << target.channel << "!";
+		}
 	}
 	else if(src == "pitch")
 	{

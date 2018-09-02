@@ -37,6 +37,15 @@ static void nop() { }
 
 static std::map<std::string, MCCTarget> globalCCs;
 
+static uint8_t switchCC = 0xFF;
+
+static struct
+{
+	int from, to;
+	double progress;
+	double speed;
+} blending;
+
 void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam)
 {
     (void)source;
@@ -100,6 +109,8 @@ void MidiV::Initialize(nlohmann::json const & config)
 		globalCCs.emplace(from, target);
 	}
 
+	switchCC = uint8_t(Utils::get(config, "vis-switch-cc", 0xFF));
+	blending.speed = Utils::get(config, "vis-switch-time", 0.5);
 
     glDebugMessageCallback(msglog, nullptr);
 
@@ -117,6 +128,9 @@ void MidiV::Initialize(nlohmann::json const & config)
             128);
         glTextureParameteri(resources.texFFT, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTextureParameteri(resources.texFFT, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(resources.texFFT, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+		glTextureParameteri(resources.texFFT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTextureParameteri(resources.texFFT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     }
 
     {
@@ -128,6 +142,9 @@ void MidiV::Initialize(nlohmann::json const & config)
             128, 16);
         glTextureParameteri(resources.texChannels, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTextureParameteri(resources.texChannels, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(resources.texChannels, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+		glTextureParameteri(resources.texChannels, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTextureParameteri(resources.texChannels, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     }
 
 
@@ -229,9 +246,12 @@ static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const 
 			break;
 		case MCCTarget::CC:
 			if(cc.hasChannel())
-				value = syncmidi.channels[cc.channel].ccs[cc.cc];
+				value = syncmidi.channels[cc.channel].ccs[cc.index];
 			else
-				value = syncmidi.ccs[cc.cc];
+				value = syncmidi.ccs[cc.index];
+			break;
+		case MCCTarget::Note:
+			value = syncmidi.channels[cc.channel].notes[cc.index].value;
 			break;
 		case MCCTarget::Pitch:
 			if(cc.hasChannel())
@@ -302,13 +322,13 @@ void MidiV::Render()
 
 
 	{
-		glm::vec2 fft[128];
+		std::array<glm::vec2, 128> fft;
 		glm::vec4 channels[16][128];
 
-		for(int x = 0; x < 128; x++)
+		for(unsigned int x = 0; x < 128; x++)
 		{
 			fft[x] = glm::vec2(0);
-			for(int y = 0; y < 16; y++)
+			for(unsigned int y = 0; y < 16; y++)
 			{
 				if(y != 9)
 				{
@@ -328,8 +348,59 @@ void MidiV::Render()
 			0, 128,
 			GL_RG,
 			GL_FLOAT,
-			fft);
-		glGenerateTextureMipmap(resources.texFFT);
+			fft.data());
+
+		static constexpr bool customMipMaps = true;
+		if constexpr(customMipMaps)
+		{
+			auto const sample = [&](double f) {
+				int x = int(127.0 * f + 0.5);
+				if(x < 0) return glm::vec2(0);
+				if(x >= 128) return glm::vec2(0);
+				return fft[x];
+			};
+
+			auto const gauss = [&](double f) {
+				auto constexpr d = (0.5 / 127.0);
+				return 0.06136f * sample(f - 2 * d)
+					+  0.24477f * sample(f - 1 * d)
+					+  0.38774f * sample(f)
+					+  0.24477f * sample(f + 1 * d)
+					+  0.06136f * sample(f + 2 * d)
+					;
+			};
+
+			// custom mipmap algorithm:
+			std::array<glm::vec2, 128> miplevel;
+			for(int l = 1; l < 7; l++)
+			{
+				int w = (1 << (7 - l));
+
+				for(size_t x = 0; x < miplevel.size(); x++)
+					miplevel[x] = glm::vec2(0.0f);
+
+				float scale = double(w) / 128.0;
+
+				for(size_t x = 0; x < 128; x++)
+				{
+					double f = x / 127.0;
+					size_t slot = size_t((w - 1) * f);
+					miplevel[slot] += scale * gauss(f);
+				}
+
+				glTextureSubImage1D(
+					resources.texFFT,
+					l,
+					0, w,
+					GL_RG,
+					GL_FLOAT,
+					miplevel.data());
+			}
+		}
+		else
+		{
+			glGenerateTextureMipmap(resources.texFFT);
+		}
 
 		glTextureSubImage2D(
 			resources.texChannels,

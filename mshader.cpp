@@ -104,3 +104,41 @@ MShader::MShader(nlohmann::json const & data)
 		this->uniforms.emplace(uniform.name, uniform);
 	}
 }
+
+MShader::MShader(char const * source)
+{
+	GLuint sh = glCreateShader(GL_FRAGMENT_SHADER);
+
+	glShaderSource(sh, 1, &source, nullptr);
+
+	glCompileShader(sh);
+
+	this->program = glCreateProgram();
+	glAttachShader(this->program, getVertexShader());
+	glAttachShader(this->program, sh);
+	glLinkProgram(this->program);
+
+	GLint status;
+	glGetProgramiv(this->program, GL_LINK_STATUS, &status);
+	if(status != GL_TRUE)
+		Utils::FlagError();
+
+	GLint count;
+	glGetProgramiv(this->program, GL_ACTIVE_UNIFORMS, &count);
+	for(unsigned int i = 0; i < unsigned(count); i++)
+	{
+		GLchar buffer[256];
+		GLsizei length;
+		GLint size;
+		GLenum type;
+
+		glGetActiveUniform(this->program, i, sizeof buffer, &length, &size, &type, buffer);
+
+		MUniform uniform;
+        uniform.name = std::string(buffer, length);
+		uniform.position = int(i);
+		uniform.type = type;
+
+		this->uniforms.emplace(uniform.name, uniform);
+	}
+}

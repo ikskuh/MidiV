@@ -27,6 +27,7 @@ struct MShader
 
 	MShader();
 	explicit MShader(nlohmann::json const & data);
+	explicit MShader(char const * source);
 };
 
 #endif // MSHADER_HPP

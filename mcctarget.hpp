@@ -5,7 +5,7 @@
 
 struct MCCTarget
 {
-	enum Type { Unknown, CC, Fixed, Pitch };
+	enum Type { Unknown, CC, Fixed, Pitch, Note };
 
 	MCCTarget();
 
@@ -15,7 +15,7 @@ struct MCCTarget
     double scale;
 
 	double value;
-	uint8_t cc;
+	uint8_t index;
 
 	bool hasChannel() const { return (this->channel != 0xFF); }
 

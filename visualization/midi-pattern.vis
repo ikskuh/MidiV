@@ -1,0 +1,38 @@
+{
+	"_type": "midi-v:visualization",
+	"_version": "1.0",
+	"title": "Midi Pattern",
+
+	"resources": [
+	{
+		"name": "rNoiseRGBA",
+		"type": "sampler2D",
+		"file": "plasma-pattern.png"
+	}
+	],
+
+	"bindings": [
+
+	],
+
+	"pipeline": [
+		{
+			"sources": [ "midi-pattern.frag" ],
+			"bindings": [ ]
+		},
+		{
+			"sources": [ "bulge.frag" ],
+			"bindings": [
+				{ "uniform": "uBulgeStrength", "source": "pitch", "channel": 3 }
+			]
+		},
+		{
+			"sources": [ "sound-circle.frag" ],
+			"bindings": [
+				{ "uniform": "uRotateSpeed", "value": 1.0 },
+				{ "uniform": "uCircleMinNote", "value": 0.3 },
+				{ "uniform": "uCircleMaxNote", "value": 0.6 }
+			]
+		}
+	]
+}

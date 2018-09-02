@@ -32,6 +32,8 @@ MVisualization::MVisualization(nlohmann::json const & data)
 
 void MVisualization::resize(int w, int h)
 {
+	GLenum constexpr format = GL_RGBA8;
+
 	for(auto & stage : this->stages)
 	{
 		if(stage.renderTarget != 0)
@@ -40,7 +42,7 @@ void MVisualization::resize(int w, int h)
 		glTextureStorage2D(
 			stage.renderTarget,
 			1,
-			GL_RGBA32F,
+			format,
 			w, h);
 	}
 	if(resultingImage != 0)
@@ -50,6 +52,6 @@ void MVisualization::resize(int w, int h)
 	glTextureStorage2D(
 		this->resultingImage,
 		1,
-		GL_RGBA32F,
+		format,
 		w, h);
 }
