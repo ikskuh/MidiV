@@ -97,4 +97,7 @@ DISTFILES += \
     visualization/analog-glitch.frag \
     visualization/static-noise.frag \
     visualization/pixelize.frag \
-    visualization/vignette.frag
+    visualization/vignette.frag \
+    todo.txt \
+    visualization/work.vis \
+    visualization/tunnel.frag

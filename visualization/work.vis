@@ -1,0 +1,21 @@
+{
+	"_type": "midi-v:visualization",
+	"_version": "1.0",
+	"title": "Plasmose",
+
+	"resources": [
+		{
+			"name": "rTunnelSurface",
+			"type": "sampler2D",
+			"file": "marbletile.png"
+		}
+	],
+	"bindings": [ ],
+
+	"pipeline": [
+		{
+			"sources": [ "tunnel.frag" ],
+			"bindings": [ ]
+		}
+	]
+}
