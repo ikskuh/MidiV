@@ -1,4 +1,14 @@
 #version 330
+/*
+{
+	"sources": [ "sound-circle.frag" ],
+	"bindings": [
+		{ "uniform": "uRotateSpeed", "value": 1.0 },
+		{ "uniform": "uCircleMinNote", "value": 0.3 },
+		{ "uniform": "uCircleMaxNote", "value": 0.6 }
+	]
+}
+*/
 
 uniform ivec2 uScreenSize;
 

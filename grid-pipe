@@ -1,35 +1,4 @@
-{
-	"_type": "midi-v:visualization",
-	"_version": "1.0",
-	"title": "The Grid",
-
-	"resources": [
-		{
-			"name": "rGridTexture",
-			"type": "sampler2D",
-			"file": "the-grid.png"
-		},
-		{
-			"name": "rGridSky",
-			"type": "sampler2D",
-			"file": "grid-sky.png"
-		},
-		{
-			"name": "uNoise",
-			"type": "sampler2D",
-			"file": "rgba-noise.png"
-		}
-	],
-
-	"bindings": [
-
-	],
-
-	"pipeline": [
-		{
-			"sources": [ "the-grid.frag" ],
-			"bindings": [ ]
-		},
+,
 		{
 			"sources": [ "pixelize.frag" ],
 			"bindings": [
@@ -56,6 +25,3 @@
 				{ "uniform": "uVignetteSize", "value": 0.8 }
 			]
 		}
-
-	]
-}
