@@ -41,6 +41,8 @@ const float skyline = 0.7;
 uniform sampler2D rGridTexture;
 uniform sampler2D rGridSky;
 
+const vec4 fogColor = vec4(0.2, 0.2, 0.3, 1.0);
+
 void main()
 {
 	float sy = 1.0 - fUV.y;
@@ -55,7 +57,10 @@ void main()
 
 		uv.y += 2.0 * uTime;
 
-		fragment = textureLod(rGridTexture, uv, 6 * (1.0 - y));
+		fragment = mix(
+			textureLod(rGridTexture, uv, 5.5 * (1.0 - y)),
+			fogColor,
+			pow(1.0 - y, 7.0));
 	}
 	else
 	{
@@ -85,7 +90,7 @@ void main()
 		}
 		else
 		{
-			fragment = 0.1 * vec4(skylineColor, 10.0);
+			fragment = fogColor;
 		}
 	}
 }

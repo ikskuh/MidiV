@@ -13,6 +13,11 @@
 			"name": "rGridSky",
 			"type": "sampler2D",
 			"file": "grid-sky.png"
+		},
+		{
+			"name": "uNoise",
+			"type": "sampler2D",
+			"file": "rgba-noise.png"
 		}
 	],
 
@@ -24,6 +29,32 @@
 		{
 			"sources": [ "the-grid.frag" ],
 			"bindings": [ ]
+		},
+		{
+			"sources": [ "pixelize.frag" ],
+			"bindings": [
+				{ "uniform": "uPixelSize", "value": 4 }
+			]
+		},
+		{
+			"sources": [ "static-noise.frag" ],
+			"bindings": [
+				{ "uniform": "uStaticNoiseStrength", "value": 0.03 },
+				{ "uniform": "uStaticNoiseGrainSize", "value": 2 }
+			]
+		},
+		{
+			"sources": [ "analog-glitch.frag" ],
+			"bindings": [
+				{ "uniform": "uGlitchStrength", "note": 64, "scale": 0.25 },
+				{ "uniform": "uStaticGlitchStrength", "value": 24.0 }
+			]
+		},
+		{
+			"sources": [ "vignette.frag" ],
+			"bindings": [
+				{ "uniform": "uVignetteSize", "value": 0.8 }
+			]
 		}
 	]
 }

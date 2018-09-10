@@ -93,4 +93,8 @@ DISTFILES += \
     visualization/bulge.frag \
     visualization/sound-circle.frag \
     visualization/the-grid.vis \
-    visualization/the-grid.frag
+    visualization/the-grid.frag \
+    visualization/analog-glitch.frag \
+    visualization/static-noise.frag \
+    visualization/pixelize.frag \
+    visualization/vignette.frag
