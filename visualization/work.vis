@@ -13,6 +13,16 @@
 			"name": "rSunPattern",
 			"type": "sampler2D",
 			"file": "img/abstract1.jpg"
+		},
+		{
+			"name": "rRasterTexture",
+			"type": "sampler1D",
+			"file": "img/plasma-gradient.png"
+		},
+		{
+			"name": "rScrollerContent",
+			"type": "sampler2D",
+			"file": "img/scroller.png"
 		}
 	],
 	"bindings": [ ],
@@ -25,8 +35,10 @@
 			]
 		},
 		{
-			"sources": [ "overlay/fire-01.frag" ],
-			"bindings": [ ]
+			"sources": [ "overlay/metaballs.frag" ],
+			"bindings": [
+
+			]
 		}
 	]
 }

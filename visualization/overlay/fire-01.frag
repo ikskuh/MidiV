@@ -1,6 +1,13 @@
 #version 330
 // source: https://www.shadertoy.com/view/4ttGWM
 
+/*
+{
+	"sources": [ "overlay/fire-01.frag" ],
+	"bindings": [ ]
+}
+*/
+
 // I started working a bit on the colors of Remix 2, ended up with something like this. :)
 // Remix 2 here: https://www.shadertoy.com/view/MtcGD7
 // Remix 1 here: https://www.shadertoy.com/view/llc3DM

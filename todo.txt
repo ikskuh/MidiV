@@ -27,16 +27,17 @@ x Burning Sun
 Transforms:
 x Tunnel
 x Rotozoom
-- Lens Effect
+x Lens Effect
 - wasser/wellen (gibt paar auf shadertoy)
 
 Overlays:
 x Black ring of music
-- Rasterbars
+x Rasterbars
 x Feuer
-- "Text"-Scroller
-- Meta-Balls
+x "Text"-Scroller
+x Meta-Balls
 - nyan cat, die zum beat jumped
+- https://www.shadertoy.com/view/MlKSWm
 
 
 Postprocessing:

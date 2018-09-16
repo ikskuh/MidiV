@@ -113,4 +113,8 @@ DISTFILES += \
     visualization/trafo/tunnel.frag \
     todo.txt \
     midiv.cfg \
-    visualization/overlay/fire-01.frag
+    visualization/overlay/fire-01.frag \
+    visualization/trafo/lens.frag \
+    visualization/overlay/rasterbar.frag \
+    visualization/overlay/scroller.frag \
+    visualization/overlay/metaballs.frag
