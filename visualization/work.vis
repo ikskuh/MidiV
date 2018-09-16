@@ -39,6 +39,12 @@
 			"bindings": [
 
 			]
+		},
+		{
+			"sources": [ "mixer/ghost.frag" ],
+			"bindings": [
+				{ "uniform": "uGhostStrength", "note": 36, "channel": 9 }
+			]
 		}
 	]
 }

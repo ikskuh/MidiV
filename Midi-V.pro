@@ -117,4 +117,5 @@ DISTFILES += \
     visualization/trafo/lens.frag \
     visualization/overlay/rasterbar.frag \
     visualization/overlay/scroller.frag \
-    visualization/overlay/metaballs.frag
+    visualization/overlay/metaballs.frag \
+    visualization/mixer/ghost.frag
