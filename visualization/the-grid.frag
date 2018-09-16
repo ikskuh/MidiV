@@ -2,11 +2,29 @@
 
 #define REDUCE_SAMPLING_ARTIFACTS
 
+const vec4 fogColor = vec4(1.0, 0.42, 0.94, 1.0); // vec4(0.2, 0.2, 0.3, 1.0);
+const vec4 gridColor = vec4(1.0, 0.0, 0.9, 1.0);
+const vec4 skylineColor = vec4(0.176, 0.35, 0.93, 1.0);
+
+const vec2 sunCenter = vec2(0.0, 0.4);
+const float sunRadius = 0.6;
+
+const float horizon = 0.4;
+const float skyline = 0.7;
+
+/*
+{
+	"sources": [ "the-grid.frag" ],
+	"bindings": [ ]
+}
+*/
+
 // Uniform pixel coordinates in range [0;1]
 in vec2 fUV;
 
 // Output color
-out vec4 fragment;
+layout(location = 0) out vec4 fragment;
+layout(location = 1) out vec4 fragmentData;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -34,15 +52,11 @@ uniform sampler2D uBackground;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const float horizon = 0.4;
-const float skyline = 0.7;
-
 uniform sampler2D rGridTexture;
 uniform sampler2D rGridSky;
+uniform sampler2D rGridSun;
 
 uniform sampler2D uNoise;
-
-const vec4 fogColor = vec4(0.2, 0.2, 0.3, 1.0);
 
 vec4 renderField(vec2 uv_in)
 {
@@ -83,7 +97,7 @@ vec4 renderField(vec2 uv_in)
 
 	texel = mix(
 		vec3(l) * normalize(rng.rgb),
-		vec3(1.0, 0.42, 0.94),
+		gridColor.rgb,
 		max(texel.r, max(texel.g, texel.b)));
 
 	return vec4(texel, 1.0);
@@ -91,6 +105,8 @@ vec4 renderField(vec2 uv_in)
 
 void main()
 {
+	fragmentData = vec4(0,0,0,0);
+
 	float sy = 1.0 - fUV.y;
 	if(sy >= horizon)
 	{
@@ -123,26 +139,57 @@ void main()
 		float y0 = (horizon - sy) / (1.0 - horizon);
 		float y1 = (horizon - sy + thickness) / (1.0 - horizon);
 
-		const vec3 skylineColor = vec3(0.176, 0.35, 0.93);
-
 		if(h < y0 && h < y1)
 		{
 			if(y0 <= thickness)
 			{
-				fragment = vec4(skylineColor, 1.0);
+				fragment = skylineColor;
 			}
 			else
 			{
-				fragment = texelFetch(rGridSky, ivec2(gl_FragCoord.xy) % ivec2(textureSize(rGridSky, 0)), 0 );
+				float aspect = float(uScreenSize.x) / float(uScreenSize.y);
+
+				vec2 xy = vec2(aspect, 1.0) * (2.0 * fUV - 1.0);
+
+				vec4 sky = texelFetch(rGridSky, ivec2(gl_FragCoord.xy) % ivec2(textureSize(rGridSky, 0)), 0 );
+
+				if(distance(sunCenter, xy) <= sunRadius)
+				{
+					float r = clamp(1.1 * (distance(sunCenter, xy) - sunRadius) / sunRadius, 0.0, 1.0);
+
+					vec4 sun = texture(rGridSun, vec2(sunCenter - xy - sunRadius) / (2.0 * sunRadius));
+
+					float b = max(sun.r, max(sun.g, sun.b));
+
+					fragment = mix(sky, sun, b * r);
+
+					fragmentData = sun * pow(b, 3.0);
+				}
+				else
+				{
+					fragment = sky;
+				}
 			}
 		}
 		else if(h >= y0 && h < y1)
 		{
-			fragment = vec4(skylineColor, 1.0);
+			fragment = skylineColor;
 		}
 		else
 		{
-			fragment = fogColor;
+			const float tessLevel = 20.0f;
+
+			vec3 texel = textureLod(rGridTexture,
+				vec2(
+					tessLevel * y0 * pow(1.0 + h, 1.3),
+					100 * fUV.x
+				),
+				2).rgb;
+
+			fragment = mix(
+				vec4(0,0,0,1),
+				skylineColor,
+				max(texel.r, max(texel.g, texel.b)));
 		}
 	}
 }

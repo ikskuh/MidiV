@@ -31,6 +31,12 @@ uniform sampler1D uFFT;
 
 // Contains the previously rendered image in the shader chain or the output
 // of the last shader from the previous frame.
+uniform sampler2D uStage;
+
+// Contains the previously rendered data in the shader chain .
+uniform sampler2D uStageData;
+
+// Contains the result of the previous frame.
 uniform sampler2D uBackground;
 
 ////////////////////////////////////////////////////////////////////////////////

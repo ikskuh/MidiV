@@ -2,7 +2,7 @@
 
 uniform float uGrayLevel;
 
-uniform sampler2D uBackground;
+uniform sampler2D uStage;
 
 out vec4 fragment;
 
@@ -25,7 +25,7 @@ float luminosity(vec3 rgb)
 
 void main()
 {
-	vec4 color = texture(uBackground, fUV);
+	vec4 color = texture(uStage, fUV);
 
 	fragment = mix(
 		vec4(vec3(luminosity(color.rgb)), color.a),

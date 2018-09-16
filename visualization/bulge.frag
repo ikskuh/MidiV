@@ -6,7 +6,7 @@ uniform float uTime;
 
 uniform ivec2 uScreenSize;
 
-uniform sampler2D uBackground;
+uniform sampler2D uStage;
 
 in vec2 fUV;
 
@@ -24,5 +24,5 @@ void main()
 
 	vec2 uv = 0.5 + 0.5 * xy;
 
-	fragment = texture(uBackground, uv);
+	fragment = texture(uStage, uv);
 }

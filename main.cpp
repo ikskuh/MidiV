@@ -161,6 +161,8 @@ int main(int argc, char *argv[])
                 done = true;
             if((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_ESCAPE))
                 done = true;
+			if((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_SPACE))
+                MidiV::TakeScreenshot();
             if((e.type == SDL_WINDOWEVENT) && (e.window.event == SDL_WINDOWEVENT_RESIZED))
             {
                 SDL_GetWindowSize(window, &w, &h);

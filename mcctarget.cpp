@@ -32,7 +32,7 @@ MCCTarget MCCTarget::load(nlohmann::json const & override)
 		if(target.channel == 0xFF)
 		{
 			target.channel = 0;
-			Log() << "Note binding requires a channel, defaulting to channel " << target.channel << "!";
+			Log() << "Note binding requires a channel, defaulting to channel " << (int)target.channel << "!";
 		}
 	}
 	else if(src == "pitch")

@@ -44,7 +44,7 @@ MResource::MResource(nlohmann::json const & data)
 		layers = 1;
 
 	auto const texformat = GL_RGBA8;
-	auto const dataformat = GL_BGRA;
+	auto const dataformat = GL_RGBA;
 	auto const datatype = GL_UNSIGNED_BYTE;
 
 	if(type == "sampler1D")

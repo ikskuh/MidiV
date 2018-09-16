@@ -23,6 +23,8 @@ namespace MidiV
     void Resize(int w, int h);
 
     void Render();
+
+	void TakeScreenshot();
 };
 
 #endif // MVISUALIZATIONCONTAINER_HPP

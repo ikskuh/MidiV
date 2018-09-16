@@ -100,4 +100,5 @@ DISTFILES += \
     visualization/vignette.frag \
     todo.txt \
     visualization/work.vis \
-    visualization/tunnel.frag
+    visualization/tunnel.frag \
+    visualization/lightscattering.frag

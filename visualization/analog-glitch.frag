@@ -10,7 +10,7 @@
 }
 */
 
-uniform sampler2D uBackground;
+uniform sampler2D uStage;
 
 uniform ivec2 uScreenSize;
 
@@ -48,7 +48,7 @@ void main()
 	     ;
 
 	fragment = mix(
-		texture(uBackground, uv),
-		texture(uBackground, fUV),
+		texture(uStage, uv),
+		texture(uStage, fUV),
 		0.5);
 }

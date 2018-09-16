@@ -1,15 +1,12 @@
-- HSV shifter, warm/kalt tone mapping
+- warm/kalt tone mapping
 - rotate mit alpha (verwischende spirale ueber die zeit)
 - noise basiertes verwischen. perlin noise, fbm, worley noise etc.
-- pixelator (param: pixel block size)
-- visual distortion
 - CRT effekt
 - edge detection & edge contouring
 - wasser/wellen (gibt paar auf shadertoy)
 - retro effekte wie hier: https://www.youtube.com/watch?v=GJHjkphr72o
 - andere aesthetische effekte, wie in vaporwave videos, z.b. https://www.youtube.com/watch?v=hoYxTQw8cB0
 - aggressive maschinenteile oder metallstuecke
-- feuer/flammen
 - super mario wolken auf blauem grund mit regen, blitzen
 - fraktale, zoom
 - nyan cat, die zum beat jumped
@@ -19,12 +16,29 @@
 - milkdrop-aehnliche effekte
 - vieles gibts auch auf shadertoy
 
+- raymarched metaballs
+- normal vector als farbe nutzen, wie hier: http://nebula.wsimg.com/25bb19b467d857f7f702edd341574c3f?AccessKeyId=650C6D8ECAF68A1E77A6&disposition=0&alloworigin=1
+- 3d fractals
+- 4d auf 3d projizieren
+- anaglyph (3d fuer rot-gruen brillen)
+
+Klassische Demo:
+- Tunnel
+- Rasterbars
+- Feuer
+- Starfield
+- "Text"-Scroller
+- Lens Effect
+- Rotozoom
+- Meta-Balls
+
 Basis-Effekte:
 x im beat pulsierendes plasma
 x "The Grid" (Retro-look scroller)
 x Midi pattern (blinkendes grid)
 x Black ring of music
 
+Postprocessing:
 x vignette
 x static noise
 x horizontal desync (sinus distortion)

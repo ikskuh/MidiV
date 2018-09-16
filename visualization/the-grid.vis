@@ -5,6 +5,11 @@
 
 	"resources": [
 		{
+			"name": "uNoise",
+			"type": "sampler2D",
+			"file": "rgba-noise.png"
+		},
+		{
 			"name": "rGridTexture",
 			"type": "sampler2D",
 			"file": "the-grid.png"
@@ -15,9 +20,9 @@
 			"file": "grid-sky.png"
 		},
 		{
-			"name": "uNoise",
+			"name": "rGridSun",
 			"type": "sampler2D",
-			"file": "rgba-noise.png"
+			"file": "retrowave_sun.png"
 		}
 	],
 
@@ -29,6 +34,17 @@
 		{
 			"sources": [ "the-grid.frag" ],
 			"bindings": [ ]
+		},
+		{
+			"sources": [ "lightscattering.frag" ],
+			"bindings": [
+				{ "uniform": "uScatterWeight",   "value": 0.1 },
+				{ "uniform": "uScatterDecay",    "value": 0.95 },
+				{ "uniform": "uScatterDensity",  "value": 0.9 },
+				{ "uniform": "uScatterExposure", "value": 1.0 },
+				{ "uniform": "uScatterCenterX",  "value": 0.0 },
+				{ "uniform": "uScatterCenterY",  "value": 0.4 }
+			]
 		},
 		{
 			"sources": [ "pixelize.frag" ],
@@ -56,6 +72,5 @@
 				{ "uniform": "uVignetteSize", "value": 0.8 }
 			]
 		}
-
 	]
 }

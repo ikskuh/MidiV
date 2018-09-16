@@ -2,7 +2,7 @@
 
 uniform float uHueShift;
 
-uniform sampler2D uBackground;
+uniform sampler2D uStage;
 
 in vec2 fUV;
 
@@ -29,7 +29,7 @@ vec3 hsv2rgb(vec3 c)
 
 void main()
 {
-	vec4 color = texture(uBackground, fUV);
+	vec4 color = texture(uStage, fUV);
 
 	vec3 hsv = rgb2hsv(color.rgb);
 

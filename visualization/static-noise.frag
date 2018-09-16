@@ -9,7 +9,7 @@
 }
 */
 
-uniform sampler2D uBackground;
+uniform sampler2D uStage;
 
 uniform ivec2 uScreenSize;
 
@@ -33,7 +33,7 @@ void main()
 
 	xy += ivec2(uTime * (5 + texelFetch(uNoise, xy % si, 0).rg));
 
-	fragment = texture(uBackground, fUV);
+	fragment = texture(uStage, fUV);
 
 	fragment.rgb += uStaticNoiseStrength
 		* (2.0 * texelFetch(uNoise, xy % si, 0).rgb - 1.0)

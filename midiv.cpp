@@ -23,7 +23,8 @@ static int width, height;
 
 static float totalTime, deltaTime;
 
-static GLuint backgroundTexture;
+static GLuint backgroundTexture, stageTexture, stageDataTexture;
+static GLuint stageTextureSlot, stageDataSlot;
 
 static struct
 {
@@ -181,6 +182,22 @@ void MidiV::Initialize(nlohmann::json const & config)
         glBindTextureUnit(slot, backgroundTexture);
 		slot++;
 	};
+	uniformMappings["uStage"] = [](MShader const & sh, MUniform const & u, unsigned int & slot)
+	{
+		u.assertType(GL_SAMPLER_2D);
+		glProgramUniform1i(sh.program, u.position, slot);
+        glBindTextureUnit(slot, stageTexture);
+		stageTextureSlot = slot;
+		slot++;
+	};
+	uniformMappings["uStageData"] = [](MShader const & sh, MUniform const & u, unsigned int & slot)
+	{
+		u.assertType(GL_SAMPLER_2D);
+		glProgramUniform1i(sh.program, u.position, slot);
+        glBindTextureUnit(slot, stageDataTexture);
+		stageDataSlot = slot;
+		slot++;
+	};
     uniformMappings["uFFT"] = [](MShader const & sh, MUniform const & u, unsigned int & slot)
 	{
 		u.assertType(GL_SAMPLER_1D);
@@ -291,6 +308,46 @@ static void transfer(std::vector<MCCTarget> & dest, T const & src, std::string c
 		dest.push_back(it->second);
 }
 
+static void dump_texture(char const * name, GLuint tex)
+{
+	unsigned int w = 0, h = 0;
+	glGetTextureLevelParameteriv(tex, 0, GL_TEXTURE_WIDTH, reinterpret_cast<int*>(&w));
+	glGetTextureLevelParameteriv(tex, 0, GL_TEXTURE_HEIGHT, reinterpret_cast<int*>(&h));
+
+	std::vector<uint8_t> buffer(3 * w * h);
+
+	glGetTextureImage(
+		tex,
+		0,
+		GL_RGB,
+		GL_UNSIGNED_BYTE,
+		GLsizei(buffer.size()),
+		buffer.data());
+
+	std::vector<uint8_t> scanline(3 * w);
+	for(unsigned int i = 0; i < (h / 2); i++)
+	{
+		unsigned int y0 = i;
+		unsigned int y1 = h - 1 - i;
+
+		memcpy(scanline.data(), &buffer[3 * y0 * w], 3 * w);
+		memcpy(&buffer[3 * y0 * w], &buffer[3 * y1 * w], 3 * w);
+		memcpy(&buffer[3 * y1 * w], scanline.data(), 3 * w);
+	}
+
+	FILE * f = fopen(name, "wb");
+	fprintf(f, "P6 %d %d 255\n", w, h);
+	fwrite(buffer.data(), buffer.size(), 1, f);
+	fclose(f);
+}
+
+volatile static bool takeScreenshot = false;
+
+void MidiV::TakeScreenshot()
+{
+	takeScreenshot = true;
+}
+
 void MidiV::Render()
 {
 	auto now = hrc::now();
@@ -319,7 +376,6 @@ void MidiV::Render()
             summidi.channels[c].notes[n].value += double(deltaTime) * syncmidi.channels[c].notes[n].value;
 		}
 	}
-
 
 	{
 		std::array<glm::vec2, 128> fft;
@@ -357,7 +413,7 @@ void MidiV::Render()
 				int x = int(127.0 * f + 0.5);
 				if(x < 0) return glm::vec2(0);
 				if(x >= 128) return glm::vec2(0);
-				return fft[x];
+				return fft[size_t(x)];
 			};
 
 			auto const gauss = [&](double f) {
@@ -379,7 +435,7 @@ void MidiV::Render()
 				for(size_t x = 0; x < miplevel.size(); x++)
 					miplevel[x] = glm::vec2(0.0f);
 
-				float scale = double(w) / 128.0;
+				float scale = float(w) / 128.0f;
 
 				for(size_t x = 0; x < 128; x++)
 				{
@@ -417,14 +473,32 @@ void MidiV::Render()
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resources.fb);
         backgroundTexture = vis.resultingImage;
+
+		stageTexture = vis.resultingImage;
+		stageDataTexture = 0;
+
+		int stageNum = 0;
 		for(auto const & stage : vis.stages)
 		{
+			glBindTextureUnit(stageTextureSlot, 0);
+			glBindTextureUnit(stageDataSlot, 0);
+
 			glNamedFramebufferTexture(
 				resources.fb,
 				GL_COLOR_ATTACHMENT0,
 				stage.renderTarget,
 				0);
-			glNamedFramebufferDrawBuffer(resources.fb, GL_COLOR_ATTACHMENT0);
+			glNamedFramebufferTexture(
+				resources.fb,
+				GL_COLOR_ATTACHMENT1,
+				stage.dataTarget,
+				0);
+			GLenum const drawBuffers[2] =
+			{
+			    GL_COLOR_ATTACHMENT0,
+			    GL_COLOR_ATTACHMENT1
+			};
+			glNamedFramebufferDrawBuffers(resources.fb, 2, drawBuffers);
 
 			glUseProgram(stage.shader.program);
 			{
@@ -475,9 +549,22 @@ void MidiV::Render()
 
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-            backgroundTexture = stage.renderTarget;
+			/*
+			char name[256];
+			sprintf(name, "/tmp/stage-%d.pgm", stageNum);
+			dump_texture(name, stage.renderTarget);
+
+			sprintf(name, "/tmp/data-%d.pgm", stageNum);
+			dump_texture(name, stage.dataTarget);
+			*/
+
+            stageTexture = stage.renderTarget;
+			stageDataTexture = stage.dataTarget;
+
+			stageNum += 1;
 		}
 
+		glNamedFramebufferReadBuffer(resources.fb, GL_COLOR_ATTACHMENT0);
 		glBlitNamedFramebuffer(
 			resources.fb, // src
             0, // dst
@@ -486,16 +573,22 @@ void MidiV::Render()
 			GL_COLOR_BUFFER_BIT,
 			GL_NEAREST);
 
-        if(backgroundTexture != vis.resultingImage)
+        if(stageTexture != vis.resultingImage)
 		{
 			glCopyImageSubData(
-                backgroundTexture, GL_TEXTURE_2D,
+                stageTexture, GL_TEXTURE_2D,
 				0,
 				0, 0, 0,
 				vis.resultingImage, GL_TEXTURE_2D,
 				0,
 				0, 0, 0,
                 width, height, 1);
+		}
+
+		if(takeScreenshot)
+		{
+			dump_texture("screenshot.pgm", stageTexture);
+			takeScreenshot = false;
 		}
 	}
     lastFrame = now;

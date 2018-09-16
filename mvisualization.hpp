@@ -15,6 +15,7 @@ struct MRenderStage
 {
 	MShader shader;
 	GLuint renderTarget;
+	GLuint dataTarget;
 };
 
 struct MVisualization

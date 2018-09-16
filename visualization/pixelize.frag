@@ -9,7 +9,7 @@
 }
 */
 
-uniform sampler2D uBackground;
+uniform sampler2D uStage;
 
 uniform ivec2 uScreenSize;
 
@@ -36,7 +36,7 @@ void main()
 		{
 			vec2 uv = (vec2(xy) + (uPixelSize - 1.0) * vec2(x,y) / (numSamples - 1)) / vec2(uScreenSize);
 
-			fragment += texture(uBackground, uv);
+			fragment += texture(uStage, uv);
 		}
 	}
 	fragment /= vec4(float(numSamples * numSamples));

@@ -12,7 +12,7 @@
 
 uniform ivec2 uScreenSize;
 
-uniform sampler2D uBackground;
+uniform sampler2D uStage;
 
 uniform sampler1D uFFT;
 
@@ -70,7 +70,7 @@ void main()
 // 		n *= 1.0 - abs(abs(a) - 1.0);
 
 		if(n < l)
-			fragment = texture(uBackground, fUV);
+			fragment = texture(uStage, fUV);
 		else
 			fragment.rgb = vec3(1,0,0);
 	}

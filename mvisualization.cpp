@@ -32,17 +32,29 @@ MVisualization::MVisualization(nlohmann::json const & data)
 
 void MVisualization::resize(int w, int h)
 {
-	GLenum constexpr format = GL_RGBA8;
+	GLenum constexpr imageFormat = GL_RGBA8;
+	GLenum constexpr dataFormat = GL_RGBA32F;
 
 	for(auto & stage : this->stages)
 	{
 		if(stage.renderTarget != 0)
 			glDeleteTextures(1, &stage.renderTarget);
+
+		if(stage.dataTarget != 0)
+			glDeleteTextures(1, &stage.dataTarget);
+
 		glCreateTextures(GL_TEXTURE_2D, 1, &stage.renderTarget);
 		glTextureStorage2D(
 			stage.renderTarget,
 			1,
-			format,
+			imageFormat,
+			w, h);
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &stage.dataTarget);
+		glTextureStorage2D(
+			stage.dataTarget,
+			1,
+			dataFormat,
 			w, h);
 	}
 	if(resultingImage != 0)
@@ -52,6 +64,6 @@ void MVisualization::resize(int w, int h)
 	glTextureStorage2D(
 		this->resultingImage,
 		1,
-		format,
+		imageFormat,
 		w, h);
 }
