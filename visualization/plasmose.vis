@@ -7,7 +7,7 @@
 		{
 			"name": "rGradient",
 			"type": "sampler1D",
-			"file": "plasma-gradient.png"
+			"file": "img/plasma-gradient.png"
 		}
 	],
 
@@ -17,13 +17,13 @@
 
 	"pipeline": [
 		{
-			"sources": [ "plasmose.frag" ],
+			"sources": [ "base/plasmose.frag" ],
                         "bindings": [
                             { "uniform": "uTime", "value": 0.0 }
                         ]
 		},
 		{
-			"sources": [ "hueshift.frag" ],
+			"sources": [ "pp/hueshift.frag" ],
 			"bindings": [
 				{ "uniform": "uHueShift", "source": "pitch" }
 			]

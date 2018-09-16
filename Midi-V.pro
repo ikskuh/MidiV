@@ -80,25 +80,36 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    visualization/plasmose.vis \
-    visualization/plasmose.frag \
-    midiv.cfg \
-    visualization/grayscale.frag \
-    visualization/hueshift.frag \
+    visualization/img/abstract1.jpg \
+    visualization/img/pattern1.jpg \
+    visualization/img/grid-sky.png \
+    visualization/img/marbletile.png \
+    visualization/img/plasma-gradient.png \
+    visualization/img/plasma-pattern.png \
+    visualization/img/retrowave_sun.png \
+    visualization/img/rgba-noise.png \
+    visualization/img/the-grid.png \
     visualization/image-rotate.vis \
-    visualization/pattern-spiral.frag \
     visualization/midi-pattern.vis \
-    visualization/midi-pattern.frag \
-    visualization/rotate.frag \
-    visualization/bulge.frag \
-    visualization/sound-circle.frag \
+    visualization/plasmose.vis \
     visualization/the-grid.vis \
-    visualization/the-grid.frag \
-    visualization/analog-glitch.frag \
-    visualization/static-noise.frag \
-    visualization/pixelize.frag \
-    visualization/vignette.frag \
-    todo.txt \
     visualization/work.vis \
-    visualization/tunnel.frag \
-    visualization/lightscattering.frag
+    visualization/base/flat-image.frag \
+    visualization/base/midi-pattern.frag \
+    visualization/base/plasmose.frag \
+    visualization/base/sun.frag \
+    visualization/base/the-grid.frag \
+    visualization/pp/analog-glitch.frag \
+    visualization/pp/grayscale.frag \
+    visualization/pp/hueshift.frag \
+    visualization/pp/lightscattering.frag \
+    visualization/pp/pixelize.frag \
+    visualization/pp/static-noise.frag \
+    visualization/pp/vignette.frag \
+    visualization/trafo/bulge.frag \
+    visualization/trafo/rotate.frag \
+    visualization/trafo/rotozoom.frag \
+    visualization/trafo/sound-circle.frag \
+    visualization/trafo/tunnel.frag \
+    todo.txt \
+    midiv.cfg

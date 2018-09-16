@@ -14,6 +14,8 @@ MCCTarget MCCTarget::load(nlohmann::json const & override)
 	target.channel = uint8_t(Utils::get(override, "channel", 0xFF));
 	target.priority = Utils::get(override, "priority", 0.0);
     target.scale = Utils::get(override, "scale", 1.0);
+	target.integrate = Utils::get(override, "integrate", false);
+	target.sum_value = 0.0;
 
 	if((src == "value") || ((src == "") && override.find("value") != override.end()))
 	{
@@ -46,3 +48,6 @@ MCCTarget MCCTarget::load(nlohmann::json const & override)
 	}
 	return target;
 }
+
+// implemented in midiv.cpp for additional fuckup
+// void MCCTarget::update(double deltaTime)

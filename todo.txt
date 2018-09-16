@@ -1,7 +1,5 @@
-- warm/kalt tone mapping
 - rotate mit alpha (verwischende spirale ueber die zeit)
 - noise basiertes verwischen. perlin noise, fbm, worley noise etc.
-- CRT effekt
 - edge detection & edge contouring
 - wasser/wellen (gibt paar auf shadertoy)
 - retro effekte wie hier: https://www.youtube.com/watch?v=GJHjkphr72o
@@ -11,7 +9,6 @@
 - fraktale, zoom
 - nyan cat, die zum beat jumped
 - windows 95 screensavers z.b. mit rohren etc.
-- gruen schwarze matrix
 - smoothe fluids mit warmen farben fuer breakdowns
 - milkdrop-aehnliche effekte
 - vieles gibts auch auf shadertoy
@@ -23,20 +20,23 @@
 - anaglyph (3d fuer rot-gruen brillen)
 
 Klassische Demo:
-- Tunnel
+x Tunnel
 - Rasterbars
 - Feuer
 - Starfield
 - "Text"-Scroller
 - Lens Effect
-- Rotozoom
+x Rotozoom
 - Meta-Balls
 
 Basis-Effekte:
+- Statisches Bild
+- gruen schwarze matrix
 x im beat pulsierendes plasma
 x "The Grid" (Retro-look scroller)
 x Midi pattern (blinkendes grid)
 x Black ring of music
+x Burning Sun
 
 Postprocessing:
 x vignette
@@ -47,3 +47,5 @@ x grayscale
 x image bulger
 x pixelizer
 x rotate
+- CRT effekt
+- warm/kalt tone mapping

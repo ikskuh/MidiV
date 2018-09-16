@@ -7,22 +7,22 @@
 		{
 			"name": "uNoise",
 			"type": "sampler2D",
-			"file": "rgba-noise.png"
+			"file": "img/rgba-noise.png"
 		},
 		{
 			"name": "rGridTexture",
 			"type": "sampler2D",
-			"file": "the-grid.png"
+			"file": "img/the-grid.png"
 		},
 		{
 			"name": "rGridSky",
 			"type": "sampler2D",
-			"file": "grid-sky.png"
+			"file": "img/grid-sky.png"
 		},
 		{
 			"name": "rGridSun",
 			"type": "sampler2D",
-			"file": "retrowave_sun.png"
+			"file": "img/retrowave_sun.png"
 		}
 	],
 
@@ -32,11 +32,11 @@
 
 	"pipeline": [
 		{
-			"sources": [ "the-grid.frag" ],
+			"sources": [ "base/the-grid.frag" ],
 			"bindings": [ ]
 		},
 		{
-			"sources": [ "lightscattering.frag" ],
+			"sources": [ "pp/lightscattering.frag" ],
 			"bindings": [
 				{ "uniform": "uScatterWeight",   "value": 0.1 },
 				{ "uniform": "uScatterDecay",    "value": 0.95 },
@@ -47,27 +47,27 @@
 			]
 		},
 		{
-			"sources": [ "pixelize.frag" ],
+			"sources": [ "pp/pixelize.frag" ],
 			"bindings": [
 				{ "uniform": "uPixelSize", "value": 4 }
 			]
 		},
 		{
-			"sources": [ "static-noise.frag" ],
+			"sources": [ "pp/static-noise.frag" ],
 			"bindings": [
 				{ "uniform": "uStaticNoiseStrength", "value": 0.03 },
 				{ "uniform": "uStaticNoiseGrainSize", "value": 2 }
 			]
 		},
 		{
-			"sources": [ "analog-glitch.frag" ],
+			"sources": [ "pp/analog-glitch.frag" ],
 			"bindings": [
 				{ "uniform": "uGlitchStrength", "note": 64, "scale": 0.25 },
 				{ "uniform": "uStaticGlitchStrength", "value": 24.0 }
 			]
 		},
 		{
-			"sources": [ "vignette.frag" ],
+			"sources": [ "pp/vignette.frag" ],
 			"bindings": [
 				{ "uniform": "uVignetteSize", "value": 0.8 }
 			]

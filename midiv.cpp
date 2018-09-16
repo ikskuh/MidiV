@@ -250,49 +250,52 @@ void MidiV::Resize(int w, int h)
     height = h;
 }
 
-static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const & cc)
+void MCCTarget::update(double deltaTime)
 {
 	double value;
-	switch(cc.type)
+	switch(this->type)
 	{
 		case MCCTarget::Unknown:
-			value = 0;
+			this->value = 0;
 			break;
 		case MCCTarget::Fixed:
-			value = cc.value;
+			// already set up
 			break;
 		case MCCTarget::CC:
-			if(cc.hasChannel())
-				value = syncmidi.channels[cc.channel].ccs[cc.index];
+			if(this->hasChannel())
+				this->value = syncmidi.channels[this->channel].ccs[this->index];
 			else
-				value = syncmidi.ccs[cc.index];
+				this->value = syncmidi.ccs[this->index];
 			break;
 		case MCCTarget::Note:
-			value = syncmidi.channels[cc.channel].notes[cc.index].value;
+			this->value = syncmidi.channels[this->channel].notes[this->index].value;
 			break;
 		case MCCTarget::Pitch:
-			if(cc.hasChannel())
-				value= syncmidi.channels[cc.channel].pitch;
+			if(this->hasChannel())
+				value= syncmidi.channels[this->channel].pitch;
 			else
 				value = syncmidi.pitch;
 			break;
 	}
-    value *= cc.scale;
+	this->sum_value += deltaTime * this->value;
+}
 
+static void bindCCUniform(GLuint pgm, MUniform const & uniform, MCCTarget const & cc)
+{
 	switch(uniform.type)
 	{
 		case GL_FLOAT:
-			glProgramUniform1f(pgm, uniform.position, GLfloat(value));
+			glProgramUniform1f(pgm, uniform.position, GLfloat(cc.get()));
 			break;
 		case GL_DOUBLE:
-			glProgramUniform1d(pgm, uniform.position, GLdouble(value));
+			glProgramUniform1d(pgm, uniform.position, GLdouble(cc.get()));
 			break;
 
 		case GL_INT:
-			glProgramUniform1i(pgm, uniform.position, GLint(127.0 * value));
+			glProgramUniform1i(pgm, uniform.position, GLint(127.0 * cc.get()));
 			break;
 		case GL_UNSIGNED_INT:
-			glProgramUniform1ui(pgm, uniform.position, GLuint(127.0 * value));
+			glProgramUniform1ui(pgm, uniform.position, GLuint(127.0 * cc.get()));
 			break;
 
 		default:
@@ -365,6 +368,17 @@ void MidiV::Render()
 		}
 
         syncmidi = mididata;
+	}
+
+	// Update bindings
+	for(auto & cc : globalCCs) cc.second.update(deltaTime);
+	for(auto & vis : visualizations)
+	{
+		for(auto & cc : vis.ccMapping) cc.second.update(deltaTime);
+		for(auto & stage : vis.stages)
+		{
+			for(auto & cc : stage.shader.bindings) cc.second.update(deltaTime);
+		}
 	}
 
 	// Integrate midi data

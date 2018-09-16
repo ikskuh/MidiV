@@ -7,7 +7,7 @@
 	{
 		"name": "rNoiseRGBA",
 		"type": "sampler2D",
-		"file": "plasma-pattern.png"
+		"file": "img/plasma-pattern.png"
 	}
 	],
 
@@ -17,11 +17,11 @@
 
 	"pipeline": [
 		{
-			"sources": [ "midi-pattern.frag" ],
+			"sources": [ "base/midi-pattern.frag" ],
 			"bindings": [ ]
 		},
 		{
-			"sources": [ "bulge.frag" ],
+			"sources": [ "trafo/bulge.frag" ],
 			"bindings": [
 				{ "uniform": "uBulgeStrength", "source": "pitch", "channel": 3 }
 			]

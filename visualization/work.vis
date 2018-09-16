@@ -5,17 +5,24 @@
 
 	"resources": [
 		{
-			"name": "rTunnelSurface",
+			"name": "rFlatImage",
 			"type": "sampler2D",
-			"file": "marbletile.png"
+			"file": "img/marbletile.png"
+		},
+		{
+			"name": "rSunPattern",
+			"type": "sampler2D",
+			"file": "img/abstract1.jpg"
 		}
 	],
 	"bindings": [ ],
 
 	"pipeline": [
 		{
-			"sources": [ "tunnel.frag" ],
-			"bindings": [ ]
+			"sources": [ "base/flat-image.frag" ],
+			"bindings": [
+				{ "uniform": "uStretch", "value": 1.0 }
+			]
 		}
 	]
 }
