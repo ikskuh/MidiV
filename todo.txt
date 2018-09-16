@@ -1,13 +1,9 @@
 - rotate mit alpha (verwischende spirale ueber die zeit)
-- noise basiertes verwischen. perlin noise, fbm, worley noise etc.
-- edge detection & edge contouring
-- wasser/wellen (gibt paar auf shadertoy)
-- retro effekte wie hier: https://www.youtube.com/watch?v=GJHjkphr72o
+- noise basiertes verwischen. perlin noise, fbm, worley noise etc.- retro effekte wie hier: https://www.youtube.com/watch?v=GJHjkphr72o
 - andere aesthetische effekte, wie in vaporwave videos, z.b. https://www.youtube.com/watch?v=hoYxTQw8cB0
 - aggressive maschinenteile oder metallstuecke
 - super mario wolken auf blauem grund mit regen, blitzen
 - fraktale, zoom
-- nyan cat, die zum beat jumped
 - windows 95 screensavers z.b. mit rohren etc.
 - smoothe fluids mit warmen farben fuer breakdowns
 - milkdrop-aehnliche effekte
@@ -19,24 +15,29 @@
 - 4d auf 3d projizieren
 - anaglyph (3d fuer rot-gruen brillen)
 
-Klassische Demo:
-x Tunnel
-- Rasterbars
-- Feuer
-- Starfield
-- "Text"-Scroller
-- Lens Effect
-x Rotozoom
-- Meta-Balls
-
 Basis-Effekte:
-- Statisches Bild
+x Statisches Bild
 - gruen schwarze matrix
 x im beat pulsierendes plasma
 x "The Grid" (Retro-look scroller)
 x Midi pattern (blinkendes grid)
-x Black ring of music
 x Burning Sun
+- Starfield
+
+Transforms:
+x Tunnel
+x Rotozoom
+- Lens Effect
+- wasser/wellen (gibt paar auf shadertoy)
+
+Overlays:
+x Black ring of music
+- Rasterbars
+x Feuer
+- "Text"-Scroller
+- Meta-Balls
+- nyan cat, die zum beat jumped
+
 
 Postprocessing:
 x vignette
@@ -49,3 +50,5 @@ x pixelizer
 x rotate
 - CRT effekt
 - warm/kalt tone mapping
+- edge detection & edge contouring
+

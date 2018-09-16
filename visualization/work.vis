@@ -23,6 +23,10 @@
 			"bindings": [
 				{ "uniform": "uStretch", "value": 1.0 }
 			]
+		},
+		{
+			"sources": [ "overlay/fire-01.frag" ],
+			"bindings": [ ]
 		}
 	]
 }

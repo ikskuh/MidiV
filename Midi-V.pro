@@ -109,7 +109,8 @@ DISTFILES += \
     visualization/trafo/bulge.frag \
     visualization/trafo/rotate.frag \
     visualization/trafo/rotozoom.frag \
-    visualization/trafo/sound-circle.frag \
+    visualization/overlay/sound-circle.frag \
     visualization/trafo/tunnel.frag \
     todo.txt \
-    midiv.cfg
+    midiv.cfg \
+    visualization/overlay/fire-01.frag
