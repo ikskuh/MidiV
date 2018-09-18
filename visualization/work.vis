@@ -3,31 +3,38 @@
 	"_version": "1.0",
 	"title": "Plasmose",
 
-	"resources": [
-		{
-			"name": "rFlatImage",
-			"type": "sampler2D",
-			"file": "img/marbletile.png"
-		},
-		{
-			"name": "rImageOverlay",
-			"type": "sampler2D",
-			"file": "img/overlay.png"
-		}
-	],
-	"bindings": [ ],
-
 	"pipeline": [
 		{
 			"sources": [ "base/flat-image.frag" ],
 			"bindings": [
 				{ "uniform": "uStretch", "value": 1.0 }
+			],
+			"resources": [
+				{
+					"name": "rFlatImage",
+					"type": "sampler2D",
+					"file": "img/marbletile.png"
+				}
 			]
 		},
 		{
 			"sources": [ "overlay/image-overlay.frag" ],
-			"bindings": [
-
+			"resources": [
+				{
+					"name": "rImageOverlay",
+					"type": "noise",
+					"size": 512
+				}
+			]
+		},
+		{
+			"sources": [ "overlay/image-overlay.frag" ],
+			"resources": [
+				{
+					"name": "rImageOverlay",
+					"type": "sampler2D",
+					"file": "img/overlay.png"
+				}
 			]
 		}
 	]

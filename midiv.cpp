@@ -381,6 +381,16 @@ void MidiV::Render()
 		}
 	}
 
+	// Update resources
+	for(auto & vis : visualizations)
+	{
+		for(auto & res : vis.resources) res.second.update();
+		for(auto & stage : vis.stages)
+		{
+			for(auto & res : stage.shader.resources) res.second.update();
+		}
+	}
+
 	// Integrate midi data
 	for(int c = 0; c < 16; c++)
 	{
@@ -525,6 +535,7 @@ void MidiV::Render()
 					auto const & uniform = tuple.second;
 
 					auto resource = vis.resources.find(name);
+					auto localResource = stage.shader.resources.find(name);
 					auto predefined = uniformMappings.find(name);
 
 					std::vector<MCCTarget> sources;
@@ -539,7 +550,13 @@ void MidiV::Render()
 						});
 
 					// first, check for a provided image resource
-					if(resource != vis.resources.end())
+					if(localResource != stage.shader.resources.end())
+					{
+						glBindTextureUnit(textureSlot, localResource->second.texture);
+						glProgramUniform1i(pgm, uniform.position, int(textureSlot));
+						textureSlot++;
+					}
+					else if(resource != vis.resources.end())
 					{
 						glBindTextureUnit(textureSlot, resource->second.texture);
 						glProgramUniform1i(pgm, uniform.position, int(textureSlot));

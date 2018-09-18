@@ -55,12 +55,19 @@ MShader::MShader(nlohmann::json const & data)
         }
 	}
 
-	for(auto const & src : data["bindings"])
+	for(auto const & src : Utils::get(data, "bindings"))
 	{
 		this->bindings.emplace(
 			src["uniform"].get<std::string>(),
 			MCCTarget::load(src)
 			);
+	}
+
+	// load all resource
+	for(auto const & subdata : Utils::get(data, "resources"))
+	{
+        auto name = subdata["name"].get<std::string>();
+		this->resources.emplace(name, MResource(subdata));
 	}
 
 	std::vector<GLchar const *> sources;

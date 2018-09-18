@@ -2,6 +2,7 @@
 #define MSHADER_HPP
 
 #include "mcctarget.hpp"
+#include "mresource.hpp"
 
 #include <json.hpp>
 #include <GL/gl3w.h>
@@ -24,6 +25,7 @@ struct MShader
 	GLuint program;
     std::map<std::string, MUniform> uniforms;
 	std::map<std::string, MCCTarget> bindings;
+	std::map<std::string, MResource> resources;
 
 	MShader();
 	explicit MShader(nlohmann::json const & data);

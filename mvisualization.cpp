@@ -6,14 +6,14 @@ MVisualization::MVisualization(nlohmann::json const & data)
     this->title = data["title"].get<std::string>();
 
 	// load all resource
-	for(auto const & subdata : data["resources"])
+	for(auto const & subdata : Utils::get(data, "resources"))
 	{
         auto name = subdata["name"].get<std::string>();
 		this->resources.emplace(name, MResource(subdata));
 	}
 
 	// load all cc mappings
-	for(auto const & subdata : data["bindings"])
+	for(auto const & subdata : Utils::get(data, "bindings"))
 	{
 		auto from = subdata["uniform"].get<std::string>();
 		auto target = MCCTarget::load(subdata);

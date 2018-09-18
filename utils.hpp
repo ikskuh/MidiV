@@ -130,4 +130,12 @@ namespace Utils
 		else
 			return _default;
 	}
+
+	static nlohmann::json get(nlohmann::json const & data, char const * name)
+	{
+		if(data.find(name) != data.end())
+			return data[name];
+		else
+			return nlohmann::json { };
+	}
 }

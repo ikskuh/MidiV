@@ -56,7 +56,9 @@ SOURCES += \
     stbi_impl.c \
     midiv.cpp \
     hal.cpp \
-    mcctarget.cpp
+    mcctarget.cpp \
+    resource-providers.cpp \
+    providers/noiseprovider.cpp
 
 HEADERS += \
     mshader.hpp \
@@ -69,7 +71,8 @@ HEADERS += \
     debug.hpp \
     utils.hpp \
     mcctarget.hpp \
-    ccs.hpp
+    ccs.hpp \
+    providers/noiseprovider.hpp
 
 SOURCES += $$quote($$PWD/ext/gl3w/src/gl3w.c)
 SOURCES += $$quote($$PWD/ext/rtmidi/RtMidi.cpp)
