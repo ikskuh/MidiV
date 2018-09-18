@@ -134,12 +134,23 @@ int main(int argc, char *argv[])
 	Log() << "Loading visualizations...";
 
 	int index = 0;
+
+	bool good = true;
 	for(auto const & vis : config["visualizations"])
 	{
-		MidiV::LoadVisualization(index++, vis.get<std::string>());
+		auto file = vis.get<std::string>();
+
+		Utils::ResetError();
+
+		Log() << "Load visualization " << file << "...";
+		MidiV::LoadVisualization(index++, file);
+
+		good &= !Utils::HasError();
+		if(Utils::HasError())
+			Log() << "Failure.";
 	}
 
-	if(Utils::HasError())
+	if(!good)
 		return EXIT_FAILURE;
 
 	Log() << "Visualizations ready!";
@@ -184,5 +195,7 @@ int main(int argc, char *argv[])
 static volatile bool error_flag = false;
 
 bool Utils::HasError() { return error_flag; }
-void Utils::FlagError() { error_flag = true; }
+void Utils::FlagError() {
+	error_flag = true;
+}
 void Utils::ResetError() { error_flag = false; }

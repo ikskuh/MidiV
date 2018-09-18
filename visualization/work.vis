@@ -10,19 +10,9 @@
 			"file": "img/marbletile.png"
 		},
 		{
-			"name": "rSunPattern",
+			"name": "rImageOverlay",
 			"type": "sampler2D",
-			"file": "img/abstract1.jpg"
-		},
-		{
-			"name": "rRasterTexture",
-			"type": "sampler1D",
-			"file": "img/plasma-gradient.png"
-		},
-		{
-			"name": "rScrollerContent",
-			"type": "sampler2D",
-			"file": "img/scroller.png"
+			"file": "img/overlay.png"
 		}
 	],
 	"bindings": [ ],
@@ -35,15 +25,9 @@
 			]
 		},
 		{
-			"sources": [ "overlay/metaballs.frag" ],
+			"sources": [ "overlay/image-overlay.frag" ],
 			"bindings": [
 
-			]
-		},
-		{
-			"sources": [ "mixer/ghost.frag" ],
-			"bindings": [
-				{ "uniform": "uGhostStrength", "note": 36, "channel": 9 }
 			]
 		}
 	]

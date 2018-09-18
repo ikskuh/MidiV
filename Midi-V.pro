@@ -118,4 +118,5 @@ DISTFILES += \
     visualization/overlay/rasterbar.frag \
     visualization/overlay/scroller.frag \
     visualization/overlay/metaballs.frag \
-    visualization/mixer/ghost.frag
+    visualization/mixer/ghost.frag \
+    visualization/overlay/image-overlay.frag

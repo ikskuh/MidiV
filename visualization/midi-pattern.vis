@@ -4,11 +4,11 @@
 	"title": "Midi Pattern",
 
 	"resources": [
-	{
-		"name": "rNoiseRGBA",
-		"type": "sampler2D",
-		"file": "img/plasma-pattern.png"
-	}
+		{
+			"name": "rNoiseRGBA",
+			"type": "sampler2D",
+			"file": "img/plasma-pattern.png"
+		}
 	],
 
 	"bindings": [

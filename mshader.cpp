@@ -83,7 +83,20 @@ MShader::MShader(nlohmann::json const & data)
 	GLint status;
 	glGetProgramiv(this->program, GL_LINK_STATUS, &status);
 	if(status != GL_TRUE)
+	{
+		Log() << "Failed to link program:";
+
+		GLint len;
+		glGetProgramiv(this->program, GL_INFO_LOG_LENGTH, &len);
+
+		std::vector<char> infoLog(len + 1);
+		GLsizei actualLen;
+		glGetProgramInfoLog(this->program, infoLog.size(), &actualLen, infoLog.data());
+
+		Log() << std::string(infoLog.data(), actualLen);
+
 		Utils::FlagError();
+	}
 
 	GLint count;
 	glGetProgramiv(this->program, GL_ACTIVE_UNIFORMS, &count);
