@@ -3,6 +3,7 @@
 #include <GL/gl3w.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include <SDL_ttf.h>
 
 #include "die.h"
 #include "debug.hpp"
@@ -50,6 +51,10 @@ int main(int argc, char *argv[])
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
         die(SDL_GetError());
     atexit(SDL_Quit);
+
+	if(TTF_Init() < 0)
+		die(TTF_GetError());
+    atexit(TTF_Quit);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);

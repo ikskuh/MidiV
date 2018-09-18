@@ -10,6 +10,14 @@
 		{ "uniform": "uScrollerFreq", "value": 5.0 },
 		{ "uniform": "uScrollerOff", "value": 5.0, "integrate": true },
 		{ "uniform": "uScrollerScroll", "value": 0.5, "integrate": true }
+	],
+	"resources": [
+		{
+			"name": "rScrollerContent",
+			"type": "text",
+			"text": "Hello you, welcome to our demo!",
+			"size": 24
+		}
 	]
 }
 */

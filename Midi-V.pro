@@ -31,7 +31,7 @@ debug: {
 
 linux: {
     DEFINES += MIDIV_LINUX __LINUX_ALSA__
-    PACKAGES = sdl2 alsa
+    PACKAGES = sdl2 SDL2_ttf alsa
     QMAKE_CXXFLAGS += $$system(pkg-config --cflags $$PACKAGES)
     QMAKE_LFLAGS   += $$system(pkg-config --libs   $$PACKAGES)
 	LIBS += -ldl
@@ -58,7 +58,8 @@ SOURCES += \
     hal.cpp \
     mcctarget.cpp \
     resource-providers.cpp \
-    providers/noiseprovider.cpp
+    providers/noiseprovider.cpp \
+    providers/textprovider.cpp
 
 HEADERS += \
     mshader.hpp \
@@ -72,7 +73,8 @@ HEADERS += \
     utils.hpp \
     mcctarget.hpp \
     ccs.hpp \
-    providers/noiseprovider.hpp
+    providers/noiseprovider.hpp \
+    providers/textprovider.hpp
 
 SOURCES += $$quote($$PWD/ext/gl3w/src/gl3w.c)
 SOURCES += $$quote($$PWD/ext/rtmidi/RtMidi.cpp)
