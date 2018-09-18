@@ -8,8 +8,9 @@ uniform sampler2D rFlatImage;
 
 uniform ivec2 uScreenSize;
 
-uniform float uStretch;
-uniform float uTile;
+uniform float uStretch = 0.0;
+uniform float uTile = 0.0;
+uniform float uFlipped = 0.0;
 
 void main()
 {
@@ -26,7 +27,9 @@ void main()
 
 	vec2 uv = 0.5 + 0.5 * xy;
 
-	fragment = texture(
-		rFlatImage,
-		mix(uv, fUV, uStretch));
+	uv = mix(uv, fUV, uStretch);
+
+	uv = mix(uv, vec2(uv.x, 1.0 - uv.y), uFlipped);
+
+	fragment = texture(rFlatImage, uv);
 }

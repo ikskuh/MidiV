@@ -12,6 +12,9 @@ namespace Utils
     using Byte = std::uint8_t;
     using ByteArray = std::vector<Byte>;
 
+	template<typename T>
+	using sdlptr_t = std::unique_ptr<T, void(*)(T*)>;
+
 	bool HasError();
 	void FlagError();
 	void ResetError();

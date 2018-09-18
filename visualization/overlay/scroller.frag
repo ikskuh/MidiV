@@ -15,10 +15,13 @@
 		{
 			"name": "rScrollerContent",
 			"type": "text",
-			"text": "Hello you, welcome to our demo!",
-			"size": 24
+			"font": "fonts/DroidSerif-Bold.ttf",
+			"size": 128,
+			"text": "    Hello you, welcome to our demo!    ",
+			"color": "#FF0000"
 		}
 	]
+}
 }
 */
 

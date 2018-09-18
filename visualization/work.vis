@@ -7,34 +7,13 @@
 		{
 			"sources": [ "base/flat-image.frag" ],
 			"bindings": [
-				{ "uniform": "uStretch", "value": 1.0 }
+				{ "uniform": "uStretch", "value": 1.0 },
+				{ "uniform": "uFlipped", "value": 1.0 }
 			],
 			"resources": [
 				{
 					"name": "rFlatImage",
-					"type": "sampler2D",
-					"file": "img/marbletile.png"
-				}
-			]
-		},
-		{
-			"sources": [ "overlay/scroller.frag" ],
-			"bindings": [
-				{ "uniform": "uScrollerPos",  "value": 0.5 },
-				{ "uniform": "uScrollerSize", "value": 0.1 },
-				{ "uniform": "uScrollerAmp", "value": 0.05 },
-				{ "uniform": "uScrollerFreq", "value": 5.0 },
-				{ "uniform": "uScrollerOff", "value": 5.0, "integrate": true },
-				{ "uniform": "uScrollerScroll", "value": 0.5, "integrate": true }
-			],
-			"resources": [
-				{
-					"name": "rScrollerContent",
-					"type": "text",
-					"font": "fonts/Roboto-Bold.ttf",
-					"size": 64,
-					"text": "  Hello you, welcome to our demo!  ",
-					"color": "#FF0000"
+					"type": "fake-tracker"
 				}
 			]
 		}

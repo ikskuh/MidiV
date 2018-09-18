@@ -12,7 +12,8 @@ using hrc = std::chrono::high_resolution_clock;
 
 static std::mutex mididataMutex;
 // current state, synchronized state, summed state
-static MMidiState mididata, syncmidi, summidi;
+static MMidiState mididata;
+static MMidiState syncmidi, summidi;
 
 static std::array<MVisualization, 128> visualizations;
 static std::chrono::high_resolution_clock::time_point startPoint, lastFrame;
@@ -252,7 +253,6 @@ void MidiV::Resize(int w, int h)
 
 void MCCTarget::update(double deltaTime)
 {
-	double value;
 	switch(this->type)
 	{
 		case MCCTarget::Unknown:
@@ -272,9 +272,9 @@ void MCCTarget::update(double deltaTime)
 			break;
 		case MCCTarget::Pitch:
 			if(this->hasChannel())
-				value= syncmidi.channels[this->channel].pitch;
+				this->value= syncmidi.channels[this->channel].pitch;
 			else
-				value = syncmidi.pitch;
+				this->value = syncmidi.pitch;
 			break;
 	}
 	this->sum_value += deltaTime * this->value;
@@ -688,8 +688,9 @@ void midiCallback( double timeStamp, std::vector<unsigned char> * message, void 
 
 		case MidiMsg::PitchWheelChange: {
 			int pitch = (message->at(2) << 7) | message->at(1);
-			mididata.channels[chan].pitch = (pitch - 0x2000) / double(0x2000);
-			mididata.pitch = mididata.channels[chan].pitch;
+			auto val = (pitch - 0x2000) / double(0x2000);
+			mididata.channels[chan].pitch = val;
+			mididata.pitch = val;
 			break;
 		}
 		default: {

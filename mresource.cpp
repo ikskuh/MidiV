@@ -183,6 +183,11 @@ MResource::MResource(nlohmann::json const & data)
 					imgdata);
 			}
 		}
+		else
+		{
+			Log() << "Usage of unknown image source '" << type << "'.";
+			Utils::FlagError();
+		}
 
 		auto filter = get(data, "filter", std::string("linear"));
 
