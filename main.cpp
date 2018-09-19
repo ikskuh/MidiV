@@ -9,6 +9,7 @@
 #include "debug.hpp"
 #include "hal.hpp"
 #include "utils.hpp"
+#include "midi.hpp"
 
 #include <json.hpp>
 
@@ -127,8 +128,11 @@ int main(int argc, char *argv[])
         glCreateVertexArrays = glGenVertexArrays;
     }
 
+	Log() << "Initialize midi interface";
+	Midi::Initialize(config);
 
-    Log() << "Initializing...";
+
+    Log() << "Initializing visualization...";
     MidiV::Initialize(config);
 
 	if(Utils::HasError())

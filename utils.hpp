@@ -134,7 +134,7 @@ namespace Utils
 			return _default;
 	}
 
-	static nlohmann::json get(nlohmann::json const & data, char const * name)
+	static inline nlohmann::json get(nlohmann::json const & data, char const * name)
 	{
 		if(data.find(name) != data.end())
 			return data[name];

@@ -60,7 +60,8 @@ SOURCES += \
     resource-providers.cpp \
     providers/noiseprovider.cpp \
     providers/textprovider.cpp \
-    providers/faketracker.cpp
+    providers/faketracker.cpp \
+    midi.cpp
 
 HEADERS += \
     mshader.hpp \
@@ -76,7 +77,8 @@ HEADERS += \
     ccs.hpp \
     providers/noiseprovider.hpp \
     providers/textprovider.hpp \
-    providers/faketracker.hpp
+    providers/faketracker.hpp \
+    midi.hpp
 
 SOURCES += $$quote($$PWD/ext/gl3w/src/gl3w.c)
 SOURCES += $$quote($$PWD/ext/rtmidi/RtMidi.cpp)

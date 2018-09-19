@@ -2,11 +2,10 @@
 #include "hal.hpp"
 #include "utils.hpp"
 #include "debug.hpp"
+#include "midi.hpp"
 #include <glm/glm.hpp>
 #include <fstream>
 #include <array>
-
-#include <RtMidi.h>
 
 using hrc = std::chrono::high_resolution_clock;
 
@@ -33,13 +32,13 @@ static struct
     GLuint vao, fb;
 } resources;
 
-static std::unique_ptr<RtMidiIn> midi;
-
 static void nop() { }
 
 static std::map<std::string, MCCTarget> globalCCs;
 
 static uint8_t switchCC = 0xFF;
+
+static void midiCallback( Midi::Message const & msg);
 
 static struct
 {
@@ -73,34 +72,8 @@ void APIENTRY msglog(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei
         nop(); // point to break on
 }
 
-static void midiCallback( double timeStamp, std::vector<unsigned char> *message, void *userData);
-
 void MidiV::Initialize(nlohmann::json const & config)
 {
-	midi = std::make_unique<RtMidiIn>(RtMidi::UNSPECIFIED, "Midi-V");
-	midi->setCallback(midiCallback, nullptr);
-
-    Log() << "Available midi ports:";
-    unsigned int const midiPortCount = midi->getPortCount();
-    for(unsigned int i = 0; i < midiPortCount; i++)
-    {
-        Log() << "[" << i << "] " << midi->getPortName(i);
-    }
-
-    // Windows does not support virtual midi ports by-api
-#ifndef MIDIV_WINDOWS
-    if(Utils::get(config, "useVirtualMidi", true))
-    {
-        midi->openVirtualPort("Visualization Input");
-    }
-    else
-#endif
-    {
-        midi->openPort(Utils::get(config, "midiPort", 0), "Visualization Input");
-    }
-
-	midi->ignoreTypes(); // no time, no sense, no sysex
-
 	// Load the global CC overrides
 	for(auto const & override : config["bindings"])
 	{
@@ -213,6 +186,9 @@ void MidiV::Initialize(nlohmann::json const & config)
 		glBindTextureUnit(slot, resources.texChannels);
 		slot++;
 	};
+
+
+	Midi::RegisterCallback(0x00, midiCallback);
 }
 
 
@@ -625,83 +601,40 @@ void MidiV::Render()
     lastFrame = now;
 }
 
-/*
-1000nnnn	0kkkkkkk	0vvvvvvv	Note Off event.
-									This message is sent when a note is released (ended).
-									(kkkkkkk) is the key (note) number.
-									(vvvvvvv) is the velocity.
-1001nnnn	0kkkkkkk	0vvvvvvv	Note On event.
-									This message is sent when a note is depressed (start).
-									(kkkkkkk) is the key (note) number.
-									(vvvvvvv) is the velocity.
-1010nnnn	0kkkkkkk	0vvvvvvv	Polyphonic Key Pressure (Aftertouch).
-									This message is most often sent by pressing down on the key after it "bottoms out".
-									(kkkkkkk) is the key (note) number.
-									(vvvvvvv) is the pressure value.
-1011nnnn	0ccccccc	0vvvvvvv	Control Change.
-									This message is sent when a controller value changes. Controllers include devices such as pedals and levers. Certain controller numbers are reserved for specific purposes. See Channel Mode Messages.
-									(ccccccc) is the controller number.
-									(vvvvvvv) is the new value.
-1100nnnn	0ppppppp				Program Change.
-									This message sent when the patch number changes.
-									(ppppppp) is the new program number.
-1101nnnn	0vvvvvvv				Channel Pressure (After-touch).
-									This message is most often sent by pressing down on the key after it "bottoms out". This message is different from polyphonic after-touch. Use this message to send the single greatest pressure value (of all the current depressed keys).
-									(vvvvvvv) is the pressure value.
-1110nnnn	0lllllll	0mmmmmmm	Pitch Wheel Change.
-									This message is sent to indicate a change in the pitch wheel. The pitch wheel is measured by a fourteen bit value. Centre (no pitch change) is 2000H. Sensitivity is a function of the transmitter.
-									(lllllll) are the least significant 7 bits.
-									(mmmmmmm) are the most significant 7 bits.
-*/
-
-struct MidiMsg
-{
-	static constexpr uint8_t NoteOff          = 0x80;
-	static constexpr uint8_t NoteOn           = 0x90;
-	static constexpr uint8_t Aftertouch       = 0xA0;
-	static constexpr uint8_t ControlChange    = 0xB0;
-	static constexpr uint8_t ProgramChange    = 0xC0;
-	static constexpr uint8_t ChannelPressure  = 0xD0;
-	static constexpr uint8_t PitchWheelChange = 0xE0;
-	static constexpr uint8_t MASK             = 0xF0;
-};
-
-void midiCallback( double timeStamp, std::vector<unsigned char> * message, void * /*userData*/)
+static void midiCallback( Midi::Message const & msg)
 {
 	std::lock_guard<std::mutex> lock(mididataMutex);
-
-	auto chan = message->at(0) & 0x0F;
-	switch(message->at(0) & MidiMsg::MASK)
+	switch(msg.event)
 	{
-		case MidiMsg::NoteOff:
-		case MidiMsg::NoteOn:
-			if(message->at(2) > 0)
-				mididata.channels[chan].notes[message->at(1) & 0x7F].attack(message->at(2) / 127.0);
+		case Midi::NoteOff:
+		case Midi::NoteOn:
+			if(msg.payload[1] > 0)
+				mididata.channels[msg.channel].notes[msg.payload[0] & 0x7F].attack(msg.payload[1] / 127.0);
 			else
-				mididata.channels[chan].notes[message->at(1) & 0x7F].release();
+				mididata.channels[msg.channel].notes[msg.payload[0] & 0x7F].release();
 			break;
 
-		case MidiMsg::ControlChange:
-			mididata.channels[chan].ccs[message->at(1) & 0x7F] = message->at(2) / 127.0;
-			mididata.ccs[message->at(1) & 0x7F] = mididata.channels[chan].ccs[message->at(1) & 0x7F];
+		case Midi::ControlChange:
+			mididata.channels[msg.channel].ccs[msg.payload[0] & 0x7F] = msg.payload[1] / 127.0;
+			mididata.ccs[msg.payload[0] & 0x7F] = mididata.channels[msg.channel].ccs[msg.payload[0] & 0x7F];
 			break;
 
-		case MidiMsg::PitchWheelChange: {
-			int pitch = (message->at(2) << 7) | message->at(1);
+		case Midi::PitchWheelChange: {
+			int pitch = (msg.payload[1] << 7) | msg.payload[0];
 			auto val = (pitch - 0x2000) / double(0x2000);
-			mididata.channels[chan].pitch = val;
+			mididata.channels[msg.channel].pitch = val;
 			mididata.pitch = val;
 			break;
 		}
 		default: {
 			std::stringstream stream;
-			for(unsigned int i = 0; i < message->size(); i++)
+			for(unsigned int i = 0; i < msg.payload.size(); i++)
 			{
 				if(i > 0)
 					stream << " ";
-				stream << std::hex << int(message->at(i)) << std::dec;
+				stream << std::hex << int(msg.payload[i]) << std::dec;
 			}
-			Log() << "Unknown MIDI event @" << timeStamp << " of length " << message->size() << ": " << stream.str();
+			Log() << "Unknown MIDI event @" << msg.timestamp << " of length " << msg.payload.size() << ": " << stream.str();
 		}
 	}
 }
