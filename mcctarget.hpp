@@ -14,6 +14,8 @@ struct MCCTarget
 	double priority;
     double scale;
 	bool integrate;
+	double fixed;
+	struct { double low, high; } mapping;
 
 	double value;
 	double sum_value;

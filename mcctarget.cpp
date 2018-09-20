@@ -4,6 +4,9 @@
 
 MCCTarget::MCCTarget() : type(Unknown), channel(0xFF), scale(1.0), value(0.0), index(0)
 {
+	// identity mapping
+	mapping.low = 0.0;
+	mapping.high = 1.0;
 }
 
 MCCTarget MCCTarget::load(nlohmann::json const & override)
@@ -17,10 +20,16 @@ MCCTarget MCCTarget::load(nlohmann::json const & override)
 	target.integrate = Utils::get(override, "integrate", false);
 	target.sum_value = 0.0;
 
+	if(override.find("map") != override.end())
+	{
+		target.mapping.low = override["map"][0].get<double>();
+		target.mapping.high = override["map"][1].get<double>();
+	}
+
 	if((src == "value") || ((src == "") && override.find("value") != override.end()))
 	{
 		target.type = Fixed;
-		target.value = override["value"].get<double>();
+		target.fixed = override["value"].get<double>();
 	}
 	else if((src == "cc") || ((src == "") && override.find("cc") != override.end()))
 	{

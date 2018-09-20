@@ -110,7 +110,6 @@ DISTFILES += \
     visualization/base/the-grid.frag \
     visualization/pp/analog-glitch.frag \
     visualization/pp/grayscale.frag \
-    visualization/pp/hueshift.frag \
     visualization/pp/lightscattering.frag \
     visualization/pp/pixelize.frag \
     visualization/pp/static-noise.frag \
@@ -128,4 +127,5 @@ DISTFILES += \
     visualization/overlay/scroller.frag \
     visualization/overlay/metaballs.frag \
     visualization/mixer/ghost.frag \
-    visualization/overlay/image-overlay.frag
+    visualization/overlay/image-overlay.frag \
+    visualization/pp/hsvshift.frag

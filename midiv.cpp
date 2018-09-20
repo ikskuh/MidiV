@@ -235,7 +235,7 @@ void MCCTarget::update(double deltaTime)
 			this->value = 0;
 			break;
 		case MCCTarget::Fixed:
-			// already set up
+			this->value = this->fixed;
 			break;
 		case MCCTarget::CC:
 			if(this->hasChannel())
@@ -253,6 +253,10 @@ void MCCTarget::update(double deltaTime)
 				this->value = syncmidi.pitch;
 			break;
 	}
+
+	this->value *= this->mapping.high;
+	this->value += this->mapping.low;
+
 	this->sum_value += deltaTime * this->value;
 }
 

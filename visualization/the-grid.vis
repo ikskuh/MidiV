@@ -26,10 +26,6 @@
 		}
 	],
 
-	"bindings": [
-
-	],
-
 	"pipeline": [
 		{
 			"sources": [ "base/the-grid.frag" ],

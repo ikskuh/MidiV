@@ -1,7 +1,7 @@
 {
 	"_type": "midi-v:visualization",
 	"_version": "1.0",
-	"title": "Plasmose",
+	"title": "Working Set",
 
 	"pipeline": [
 		{
@@ -15,6 +15,12 @@
 					"name": "rFlatImage",
 					"type": "fake-tracker"
 				}
+			]
+		},
+		{
+			"sources": [ "pp/hsvshift.frag" ],
+			"bindings": [
+				{ "uniform": "uValueShift", "source": "pitch", "channel": 2, "map": [ -0.1, 0.1 ] }
 			]
 		}
 	]

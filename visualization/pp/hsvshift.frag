@@ -1,6 +1,8 @@
 #version 330
 
 uniform float uHueShift;
+uniform float uSaturationShift;
+uniform float uValueShift;
 
 uniform sampler2D uStage;
 
@@ -34,6 +36,8 @@ void main()
 	vec3 hsv = rgb2hsv(color.rgb);
 
 	hsv.x += uHueShift;
+	hsv.y += uSaturationShift;
+	hsv.z += uValueShift;
 
 	fragment = vec4(hsv2rgb(hsv), color.a);
 }

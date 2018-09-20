@@ -5,6 +5,12 @@
 #include <SDL_ttf.h>
 #include <chrono>
 
+static uint8_t fakepack(uint8_t a, uint8_t b)
+{
+	return ((a ^ (a<<4)) & 0xF0)
+	     | ((b ^ (b>>4)) & 0x0F);
+}
+
 FakeTracker::FakeTracker(nlohmann::json const & data) :
     texture(0),
     dirty(true),
@@ -58,6 +64,9 @@ FakeTracker::FakeTracker(nlohmann::json const & data) :
 		auto & ctx = this->nextLane[msg.channel];
 		switch(msg.event)
 		{
+	    case Midi::ProgramChange:
+	        ctx.program = msg.payload[0];
+	        break;
 		case Midi::NoteOn:
 	        ctx.note = msg.payload[0];
 	        ctx.vol = msg.payload[1];
@@ -67,7 +76,7 @@ FakeTracker::FakeTracker(nlohmann::json const & data) :
 	        ctx.vol = msg.payload[1];
 			break;
 		case Midi::ControlChange:
-			ctx.cc = msg.payload[0];
+			ctx.cc = fakepack(msg.payload[0], msg.payload[1]);
 	        break;
 		}
 	});
@@ -84,6 +93,7 @@ FakeTracker::FakeTracker(nlohmann::json const & data) :
 FakeTracker::~FakeTracker()
 {
 	glDeleteTextures(1, &this->texture);
+	Midi::UnregisterCallback(this->hEvent);
 }
 
 static char hexdigit(unsigned int val, int pos)
@@ -133,11 +143,11 @@ void FakeTracker::update()
 			auto const & note = lane[j];
 			std::array<char, 6> const digits =
 			{
+			    hexdigit(note.program, 1),
+			    hexdigit(note.program, 0),
+
 			    hexdigit(note.note, 1),
 			    hexdigit(note.note, 0),
-
-			    hexdigit(note.vol, 1),
-			    hexdigit(note.vol, 0),
 
 			    hexdigit(note.cc, 1),
 			    hexdigit(note.cc, 0),

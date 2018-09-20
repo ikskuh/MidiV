@@ -23,7 +23,7 @@
                         ]
 		},
 		{
-			"sources": [ "pp/hueshift.frag" ],
+			"sources": [ "pp/hsvshift.frag" ],
 			"bindings": [
 				{ "uniform": "uHueShift", "source": "pitch" }
 			]

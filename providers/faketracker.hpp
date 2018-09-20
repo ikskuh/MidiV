@@ -19,7 +19,8 @@ public:
 
 	struct note_t
 	{
-		note_t() : note(0), cc(0), vol(0) { }
+		note_t() : program(0), note(0), cc(0), vol(0) { }
+		uint8_t program;
 		uint8_t note;
 		uint8_t cc;
 		uint8_t vol;
