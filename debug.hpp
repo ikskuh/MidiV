@@ -18,7 +18,7 @@ struct Log
 };
 
 template<typename T>
-auto & operator << (Log & log, T const & value)
+Log & operator << (Log & log, T const & value)
 {
     log.stream << value;
     return log;

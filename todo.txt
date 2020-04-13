@@ -15,32 +15,37 @@
 - 4d auf 3d projizieren
 - anaglyph (3d fuer rot-gruen brillen)
 
-Basis-Effekte:
+## Programmkram
+- Transitions zwischen Szenen
+
+## Meta-Effekte
+- Guitar-Hero-Effekt
+
+## Basis-Effekte:
 x Statisches Bild
 - gruen schwarze matrix
 x im beat pulsierendes plasma
 x "The Grid" (Retro-look scroller)
 x Midi pattern (blinkendes grid)
 x Burning Sun
-- Starfield
 
-Transforms:
+## Transforms
 x Tunnel
 x Rotozoom
 x Lens Effect
 - wasser/wellen (gibt paar auf shadertoy)
 
-Overlays:
+## Overlays
 x Black ring of music
-x Rasterbars
+x Rasterbars (Texture Scroller)
 x Feuer
 x "Text"-Scroller
 x Meta-Balls
 - nyan cat, die zum beat jumped
 - https://www.shadertoy.com/view/MlKSWm
+- Starfield
 
-
-Postprocessing:
+## Postprocessing
 x vignette
 x static noise
 x horizontal desync (sinus distortion)
@@ -52,4 +57,3 @@ x rotate
 - CRT effekt
 - warm/kalt tone mapping
 - edge detection & edge contouring
-

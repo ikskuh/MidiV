@@ -74,7 +74,7 @@ void midiCallback( double timeStamp, std::vector<unsigned char> * message, void 
 	std::lock_guard<std::mutex> _lock(callbackMutex);
 
 	for(auto const & _cb : callbacks)
-	{
+    {
 		auto const & cb = _cb.second;
 		if((cb.mask == 0x00) || (cb.mask == msg.event))
 			cb.callback(msg);
